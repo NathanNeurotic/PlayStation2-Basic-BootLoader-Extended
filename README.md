@@ -28,14 +28,14 @@ It is hosted on [github pages](https://israpps.github.io/PlayStation2-Basic-Boot
 **Config search order (activated sources only — earliest wins):**
 
 1. `CONFIG.INI` in the current directory (relative)
-2. `mc?:/SYS-CONF/PSXBBL.INI` (PSX builds)
-3. `mmce1:/PS2BBL/PS2BBL.INI` then `mmce0:/PS2BBL/PS2BBL.INI` (once the MMCE driver is running)
-4. `xfrom:/PS2BBL/CONFIG.INI` (after XFROM is enabled at runtime)
-5. `hdd0:__sysconf:pfs:/PS2BBL/CONFIG.INI` (after the HDD stack finishes init)
-6. `massX:/PS2BBL/CONFIG.INI` (once MX4SIO is enabled)
-7. `mass:/PS2BBL/CONFIG.INI`
-8. `mc1:/SYS-CONF/PS2BBL.INI`
-9. `mc0:/SYS-CONF/PS2BBL.INI`
+2. `mc1:/SYS-CONF/PS2BBL.INI`
+3. `mc0:/SYS-CONF/PS2BBL.INI`
+4. `mc?:/SYS-CONF/PSXBBL.INI` (PSX builds)
+5. `mmce1:/PS2BBL/PS2BBL.INI` then `mmce0:/PS2BBL/PS2BBL.INI` (once the MMCE driver is running)
+6. `xfrom:/PS2BBL/CONFIG.INI` (after XFROM is enabled at runtime)
+7. `hdd0:__sysconf:pfs:/PS2BBL/CONFIG.INI` (after the HDD stack finishes init)
+8. `massX:/PS2BBL/CONFIG.INI` (once MX4SIO is enabled)
+9. `mass:/PS2BBL/CONFIG.INI`
 
 If no config is found, built-in defaults are used:
 
