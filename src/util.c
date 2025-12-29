@@ -5,7 +5,7 @@
 #include <tamtypes.h>
 #include <loadfile.h>
 #include <malloc.h>
-#ifdef HDD
+#if defined(HDD) || defined(HDD_RUNTIME)
 #include <assert.h>
 #endif
 
@@ -91,7 +91,7 @@ start_line:
     return 1;        // return control to caller
 } // Ends get_CNF_string
 
-#ifdef HDD
+#if defined(HDD) || defined(HDD_RUNTIME)
 //By fjtrujy
 char **str_split(char *a_str, const char a_delim)
 {

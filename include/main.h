@@ -86,7 +86,7 @@ static void InitPSX();
 /// @note only supported by DRAGON Mechacons. function will do nothing on older mechacon
 void PrintTemperature();
 #endif
-#ifdef HDD
+#if defined(HDD) || defined(HDD_RUNTIME)
 int LoadHDDIRX(void);             // Load HDD IRXes
 int LoadFIO(void);                // Load FileXio and it´s dependencies
 int MountParty(const char *path); ///processes strings in the format `hdd0:/$PARTITION:pfs:$PATH_TO_FILE/` to mount partition
@@ -97,7 +97,7 @@ int mnt(const char *path);        ///mount partition specified on path
 void loadUDPTTY();
 #endif
 
-#ifdef HDD
+#if defined(HDD) || defined(HDD_RUNTIME)
 #include <hdd-ioctl.h>
 #include <io_common.h>
 #include <assert.h>

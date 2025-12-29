@@ -23,6 +23,33 @@ A simple PS2 (and PSX-DESR) bootloader that handles system init and ELF programs
 
 It is hosted on [github pages](https://israpps.github.io/PlayStation2-Basic-BootLoader/)
 
+## Configuration paths and options
+
+**Config search order (per build):**
+
+1. `mc0:/SYS-CONF/PS2BBL.INI`
+2. `mc1:/SYS-CONF/PS2BBL.INI`
+3. `mass:/PS2BBL/CONFIG.INI`
+4. `massX:/PS2BBL/CONFIG.INI` (when MX4SIO is built in)
+5. `hdd0:__sysconf:pfs:/PS2BBL/CONFIG.INI` (when `HDD` *or* `HDD_RUNTIME` is built in)
+6. `xfrom:/PS2BBL/CONFIG.INI` (when XFROM is built in)
+7. `mmce0:/PS2BBL/PS2BBL.INI` then `mmce1:/PS2BBL/PS2BBL.INI` (when MMCE is built in)
+8. `mc?:/SYS-CONF/PSXBBL.INI` (PSX builds)
+9. `CONFIG.INI` in the current directory
+
+If no config is found, built-in defaults are used.
+
+**Runtime options of note (keys inside the INI):**
+- `HDD_ENABLE=1` (only when built with `HDD_RUNTIME=1`): brings up the external HDD stack (DEV9, POWEROFF, ATAD, HDD, PFS) at runtime.
+- `LOAD_IRX_E#=<path>`: loads an IRX from the given path after config parsing (e.g., extra device drivers).
+- `LK_<BUTTON>_E#=<path>`: bind launch paths to controller buttons (AUTO/SELECT/L3/.../SQUARE).
+- `SKIP_PS2LOGO`, `KEY_READ_WAIT_TIME`, `EJECT_TRAY`, `LOGO_DISPLAY`: standard boot behavior knobs.
+
+**Build-time flags (Makefile) relevant to storage:**
+- `HDD=1`: compile in embedded HDD modules (poweroff/atad/hdd/pfs) and auto-enable HDD support.
+- `HDD_RUNTIME=1`: allow runtime HDD enablement from config (external IRX expected on memory card).
+- `HAS_EMBED_IRX=1`: embed USB/bdm IRXs; otherwise they are loaded externally from memory card.
+
 ## Known bugs/issues
 
 you tell me ;)
