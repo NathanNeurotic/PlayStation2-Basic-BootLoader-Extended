@@ -18,7 +18,7 @@ typedef struct
 } CONFIG;
 CONFIG GLOBCFG;
 
-const char *CONFIG_PATHS[SOURCE_COUNT] = {
+const char *const CONFIG_PATHS[SOURCE_COUNT] = {
     "mc0:/SYS-CONF/PS2BBL.INI",
     "mc1:/SYS-CONF/PS2BBL.INI",
     "mass:/PS2BBL/CONFIG.INI",
@@ -42,7 +42,7 @@ const char *CONFIG_PATHS[SOURCE_COUNT] = {
     "",
 };
 
-const char *DEFPATH[] = {
+const char *const DEFPATH[] = {
     "mc?:/BOOT/ULE.ELF", // AUTO [0]
     "mc?:/APPS/ULE/ELF",
     "mass:/BOOT/BOOT.ELF",

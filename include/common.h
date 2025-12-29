@@ -26,31 +26,8 @@ enum
     SOURCE_COUNT,
 } CONFIG_SOURCES_ID;
 
-extern const char *CONFIG_PATHS[SOURCE_COUNT];
-
-static const char *SOURCES[SOURCE_COUNT] = {
-    "mc0",
-    "mc1",
-    "usb",
-#ifdef MX4SIO
-    "mx4sio",
-#endif
-#ifdef HDD
-    "hdd",
-#endif
-#ifdef XFROM
-    "xfrom",
-#endif
-#ifdef MMCE
-    "mmce0",
-    "mmce1",
-#endif
-#ifdef PSX
-    "XCONF",
-#endif
-    "CWD",
-    "NOT FOUND",
-};
+extern const char *const CONFIG_PATHS[SOURCE_COUNT];
+extern const char *const SOURCES[SOURCE_COUNT];
 
 #define MAX_LEN     64
 #define CNF_LEN_MAX 20480 // 20kb should be enough for massive CNF's
@@ -81,28 +58,10 @@ enum
 } KEYS;
 
 /** string alias of dualshock keys for config file */
-const char *KEYS_ID[17] = {
-    "AUTO",
-    "SELECT",   // 0x0001
-    "L3",       // 0x0002
-    "R3",       // 0x0004
-    "START",    // 0x0008
-    "UP",       // 0x0010
-    "RIGHT",    // 0x0020
-    "DOWN",     // 0x0040
-    "LEFT",     // 0x0080
-    "L2",       // 0x0100
-    "R2",       // 0x0200
-    "L1",       // 0x0400
-    "R1",       // 0x0800
-    "TRIANGLE", // 0x1000
-    "CIRCLE",   // 0x2000
-    "CROSS",    // 0x4000
-    "SQUARE"    // 0x8000
-};
+extern const char *const KEYS_ID[17];
 
 /** default paths used if config file can't be loaded */
-extern const char *DEFPATH[];
+extern const char *const DEFPATH[];
 
 #ifndef COMMIT_HASH
 #define COMMIT_HASH "UNKNOWn"
