@@ -31,6 +31,11 @@ IMPORT_BIN2C(ps2hdd_irx);
 IMPORT_BIN2C(ps2fs_irx);
 #endif
 
+#if defined(XFROM) || defined(XFROM_RUNTIME)
+IMPORT_BIN2C(xfromman_irx);
+IMPORT_BIN2C(extflash_irx);
+#endif
+
 #ifdef UDPTTY
 IMPORT_BIN2C(ps2ip_irx);
 IMPORT_BIN2C(udptty_irx);

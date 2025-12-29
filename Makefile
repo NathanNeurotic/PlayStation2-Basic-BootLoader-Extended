@@ -248,11 +248,13 @@ endif
 
 ifeq ($(XFROM), 1)
   FILEXIO_NEED = 1
+  EE_OBJS += xfromman_irx.o extflash_irx.o
   EE_CFLAGS += -DXFROM
 endif
 
 ifeq ($(XFROM_RUNTIME), 1)
   FILEXIO_NEED = 1
+  EE_OBJS += xfromman_irx.o extflash_irx.o
   EE_CFLAGS += -DXFROM_RUNTIME
 endif
 
