@@ -68,6 +68,9 @@ char *config_buf = NULL; // pointer to allocated config file
 static char *keypath_store[17][3];
 static u8 keypath_allocated[17][3];
 static int config_enable_hdd = 0;
+#if defined(HDD_RUNTIME) && !defined(HDD)
+static int hdd_runtime_started = 0;
+#endif
 
 static void ResetKeypathStorage(void)
 {
@@ -327,6 +330,17 @@ int main(int argc, char *argv[])
     TimerEnd();
     DPRINTF("load default settings\n");
     SetDefaultSettings();
+
+#if defined(HDD_RUNTIME) && !defined(HDD)
+    /* Bootstrap runtime HDD so hdd0: configs can be read before parsing.
+       This is a best-effort attempt; failures are reported later if HDD_ENABLE
+       is also requested. */
+    if (!hdd_runtime_started) {
+        int bootstrap_ret = LoadHDDIRX();
+        hdd_runtime_started = (bootstrap_ret == 0);
+    }
+#endif
+
     FILE *fp;
     for (x = SOURCE_CWD; x >= SOURCE_MC0; x--) {
         char *config_path = strdup(CONFIG_PATHS[x]);
@@ -480,6 +494,8 @@ int main(int argc, char *argv[])
             scr_printf("HDD enable failed (%d)\n", hdd_ret);
             scr_setfontcolor(0xffffff);
         }
+        if (hdd_ret == 0)
+            hdd_runtime_started = 1;
     }
 #endif
 
@@ -924,7 +940,11 @@ static int LoadHDDIRXExternal(void)
 
 int LoadHDDIRX(void)
 {
+    static int hdd_stack_loaded = 0;
     int HDDSTAT;
+
+    if (hdd_stack_loaded && hdd_usable)
+        return 0;
 #ifdef HDD
     int ID, RET;
     static const char hddarg[] = "-o"
@@ -968,9 +988,13 @@ int LoadHDDIRX(void)
             return -5;
     }
 
+    hdd_stack_loaded = 1;
     return 0;
 #elif defined(HDD_RUNTIME)
-    return LoadHDDIRXExternal();
+    int ret = LoadHDDIRXExternal();
+    if (ret == 0)
+        hdd_stack_loaded = 1;
+    return ret;
 #endif
 }
 
