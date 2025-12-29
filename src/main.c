@@ -20,16 +20,16 @@ typedef struct
 CONFIG GLOBCFG;
 
 static const char *const DEFAULT_CONFIG_PATHS[SOURCE_COUNT] = {
-    "mc0:/SYS-CONF/PS2BBL.INI",
-    "mc1:/SYS-CONF/PS2BBL.INI",
-    "mass:/PS2BBL/CONFIG.INI",
-    "massX:/PS2BBL/CONFIG.INI",
-    "hdd0:__sysconf:pfs:/PS2BBL/CONFIG.INI",
-    "xfrom:/PS2BBL/CONFIG.INI",
-    "mmce0:/PS2BBL/PS2BBL.INI",
-    "mmce1:/PS2BBL/PS2BBL.INI",
-    "mc?:/SYS-CONF/PSXBBL.INI",
     "CONFIG.INI",
+    "mc1:/SYS-CONF/PS2BBL.INI",
+    "mc0:/SYS-CONF/PS2BBL.INI",
+    "mc?:/SYS-CONF/PSXBBL.INI",
+    "mmce1:/PS2BBL/PS2BBL.INI",
+    "mmce0:/PS2BBL/PS2BBL.INI",
+    "xfrom:/PS2BBL/CONFIG.INI",
+    "hdd0:__sysconf:pfs:/PS2BBL/CONFIG.INI",
+    "massX:/PS2BBL/CONFIG.INI",
+    "mass:/PS2BBL/CONFIG.INI",
     "",
 };
 const char *CONFIG_PATHS[SOURCE_COUNT];
@@ -144,10 +144,10 @@ static void InitConfigPathState(void)
 {
     memcpy(CONFIG_PATHS, DEFAULT_CONFIG_PATHS, sizeof(CONFIG_PATHS));
     memset(config_path_enabled, 0, sizeof(config_path_enabled));
-    config_path_enabled[SOURCE_MC0] = 1;
-    config_path_enabled[SOURCE_MC1] = 1;
-    config_path_enabled[SOURCE_MASS] = 1;
     config_path_enabled[SOURCE_CWD] = 1;
+    config_path_enabled[SOURCE_MC1] = 1;
+    config_path_enabled[SOURCE_MC0] = 1;
+    config_path_enabled[SOURCE_MASS] = 1;
 #ifdef PSX
     config_path_enabled[SOURCE_XCONFIG] = 1;
 #endif
@@ -533,7 +533,7 @@ int main(int argc, char *argv[])
 #endif
 
     FILE *fp;
-    for (x = SOURCE_CWD; x >= SOURCE_MC0; x--) {
+    for (x = SOURCE_CWD; x < SOURCE_INVALID; x++) {
         if (!IsConfigPathEnabled(x))
             continue;
         char *config_path = strdup(CONFIG_PATHS[x]);

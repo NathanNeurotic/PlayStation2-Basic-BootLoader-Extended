@@ -1,16 +1,16 @@
 #include "common.h"
 
 const char *const SOURCES[SOURCE_COUNT] = {
-    "mc0",
-    "mc1",
-    "usb",
-    "mx4sio",
-    "hdd",
-    "xfrom",
-    "mmce0",
-    "mmce1",
-    "XCONF",
     "CWD",
+    "mc1",
+    "mc0",
+    "XCONF",
+    "mmce1",
+    "mmce0",
+    "xfrom",
+    "hdd",
+    "mx4sio",
+    "mass",
     "NOT FOUND",
 };
 
