@@ -182,7 +182,6 @@ endif
 ifeq ($(CHAINLOAD), 1)
   HAS_EMBED_IRX = 1
   EE_CFLAGS += -DCHAINLOAD -DCHAINLOAD_PATH=\"$(CHAINLOAD_PATH)\"
-  undefine EMBEDDED_STUFF
 endif
 
 ifeq ($(MX4SIO), 1)
