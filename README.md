@@ -25,17 +25,17 @@ It is hosted on [github pages](https://israpps.github.io/PlayStation2-Basic-Boot
 
 ## Configuration paths and options
 
-**Config search order (per build):**
+**Config search order (per build) — earliest wins:**
 
-1. `mc0:/SYS-CONF/PS2BBL.INI`
-2. `mc1:/SYS-CONF/PS2BBL.INI`
-3. `mass:/PS2BBL/CONFIG.INI`
-4. `massX:/PS2BBL/CONFIG.INI` (when MX4SIO is built in)
-5. `hdd0:__sysconf:pfs:/PS2BBL/CONFIG.INI` (when `HDD` *or* `HDD_RUNTIME` is built in)
-6. `xfrom:/PS2BBL/CONFIG.INI` (when XFROM is built in)
-7. `mmce0:/PS2BBL/PS2BBL.INI` then `mmce1:/PS2BBL/PS2BBL.INI` (when MMCE is built in)
-8. `mc?:/SYS-CONF/PSXBBL.INI` (PSX builds)
-9. `CONFIG.INI` in the current directory
+1. `CONFIG.INI` in the current directory (relative)
+2. `mc0:/SYS-CONF/PS2BBL.INI`
+3. `mc1:/SYS-CONF/PS2BBL.INI`
+4. `mass:/PS2BBL/CONFIG.INI`
+5. `massX:/PS2BBL/CONFIG.INI` (when MX4SIO is built in)
+6. `hdd0:__sysconf:pfs:/PS2BBL/CONFIG.INI` (when `HDD` *or* `HDD_RUNTIME` is built in)
+7. `xfrom:/PS2BBL/CONFIG.INI` (when XFROM is built in)
+8. `mmce0:/PS2BBL/PS2BBL.INI` then `mmce1:/PS2BBL/PS2BBL.INI` (when MMCE is built in)
+9. `mc?:/SYS-CONF/PSXBBL.INI` (PSX builds)
 
 If no config is found, built-in defaults are used.
 
