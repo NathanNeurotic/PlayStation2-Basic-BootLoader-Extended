@@ -25,7 +25,7 @@ const char *const CONFIG_PATHS[SOURCE_COUNT] = {
 #ifdef MX4SIO
     "massX:/PS2BBL/CONFIG.INI",
 #endif
-#ifdef HDD
+#if defined(HDD) || defined(HDD_RUNTIME)
     "hdd0:__sysconf:pfs:/PS2BBL/CONFIG.INI",
 #endif
 #ifdef XFROM
@@ -64,9 +64,10 @@ char *EXECPATHS[3];
 u8 ROMVER[16];
 int PAD = 0;
 static int config_source = SOURCE_INVALID;
-unsigned char *config_buf = NULL; // pointer to allocated config file
+char *config_buf = NULL; // pointer to allocated config file
 static char *keypath_store[17][3];
 static u8 keypath_allocated[17][3];
+static int config_enable_hdd = 0;
 
 static void ResetKeypathStorage(void)
 {
@@ -398,6 +399,10 @@ int main(int argc, char *argv[])
                         GLOBCFG.LOGO_DISP = atoi(value);
                         continue;
                     }
+                    if (!strcmp("HDD_ENABLE", name)) {
+                        config_enable_hdd = atoi(value);
+                        continue;
+                    }
                     if (!strncmp("LK_", name, 3)) {
                         if (!strncmp(value, RUNKELF_PREFIX, RUNKELF_PREFIX_LEN)) {
                             const char *kelf_path = value + RUNKELF_PREFIX_LEN;
@@ -442,7 +447,7 @@ int main(int argc, char *argv[])
             scr_clear();
 #endif
         }
-#ifdef HDD
+#if defined(HDD) || defined(HDD_RUNTIME)
         if (config_source == SOURCE_HDD) {
 
             if (fileXioUmount("pfs0:") < 0)
@@ -466,6 +471,17 @@ int main(int argc, char *argv[])
             }
         sleep(1);
     }
+
+#if defined(HDD_RUNTIME) && !defined(HDD)
+    if (config_enable_hdd) {
+        int hdd_ret = LoadHDDIRX();
+        if (hdd_ret < 0) {
+            scr_setfontcolor(0x0000ff);
+            scr_printf("HDD enable failed (%d)\n", hdd_ret);
+            scr_setfontcolor(0xffffff);
+        }
+    }
+#endif
 
     int R = 0x80, G = 0x80, B = 0x80;
     if (GLOBCFG.OSDHISTORY_READ && (GLOBCFG.LOGO_DISP > 1)) {
@@ -627,7 +643,7 @@ char *CheckPath(char *path)
             GLOBCFG.SKIPLOGO = 1;
             dischandler();
         }
-#ifdef HDD
+#if defined(HDD) || defined(HDD_RUNTIME)
         if (!strcmp("$HDDCHECKER", path))
             HDDChecker();
 #endif
@@ -659,7 +675,7 @@ char *CheckPath(char *path)
                 return path;
         }
 #endif
-#ifdef HDD
+#if defined(HDD) || defined(HDD_RUNTIME)
     } else if (!strncmp("hdd", path, 3)) {
         if (MountParty(path) < 0) {
             DPRINTF("-{%s}-\n", path);
@@ -703,10 +719,12 @@ void SetDefaultSettings(void)
 int LoadUSBIRX(void)
 {
     int ID, RET;
+#ifndef HAS_EMBEDDED_IRX
     char bdm_path[] = "mc?:/PS2BBL/BDM.IRX";
     char bdmfs_fatfs_path[] = "mc?:/PS2BBL/BDMFS_FATFS.IRX";
     char usbd_path[] = "mc?:/PS2BBL/USBD.IRX";
     char usbmass_bd_path[] = "mc?:/PS2BBL/USBMASS_BD.IRX";
+#endif
 
 // ------------------------------------------------------------------------------------ //
 #ifdef HAS_EMBEDDED_IRX
@@ -837,7 +855,9 @@ void loadUDPTTY()
 }
 #endif
 
-#ifdef HDD
+#if defined(HDD) || defined(HDD_RUNTIME)
+static int hdd_usable;
+
 static int CheckHDD(void)
 {
     int ret = fileXioDevctl("hdd0:", HDIOC_STATUS, NULL, 0, NULL, 0);
@@ -848,7 +868,7 @@ static int CheckHDD(void)
     return ret;
 }
 
-int LoadHDDIRX(void)
+static int LoadHDDIRXExternal(void)
 {
     int ID, RET, HDDSTAT;
     static const char hddarg[] = "-o"
@@ -858,8 +878,62 @@ int LoadHDDIRX(void)
                                  "-n"
                                  "\0"
                                  "20";
-    //static const char pfsarg[] = "-n\0" "24\0" "-o\0" "8";
+    char dev9_path[] = "mc?:/PS2BBL/PS2DEV9.IRX";
+    char poweroff_path[] = "mc?:/PS2BBL/POWEROFF.IRX";
+    char atad_path[] = "mc?:/PS2BBL/PS2ATAD.IRX";
+    char hdd_path[] = "mc?:/PS2BBL/PS2HDD.IRX";
+    char pfs_path[] = "mc?:/PS2BBL/PS2FS.IRX";
 
+    ID = SifLoadStartModule(CheckPath(dev9_path), 0, NULL, &RET);
+    DPRINTF("[DEV9 ext]: ret=%d, ID=%d\n", RET, ID);
+    if (ID < 0 && RET == 1)
+        return -1;
+
+    ID = SifLoadStartModule(CheckPath(poweroff_path), 0, NULL, &RET);
+    DPRINTF(" [POWEROFF ext]: ret=%d, ID=%d\n", RET, ID);
+    if (ID < 0 || RET == 1)
+        return -2;
+
+    poweroffInit();
+    poweroffSetCallback(&poweroffCallback, NULL);
+    DPRINTF("PowerOFF Callback installed (ext)...\n");
+
+    ID = SifLoadStartModule(CheckPath(atad_path), 0, NULL, &RET);
+    DPRINTF(" [ATAD ext]: ret=%d, ID=%d\n", RET, ID);
+    if (ID < 0 || RET == 1)
+        return -3;
+
+    ID = SifLoadStartModule(CheckPath(hdd_path), sizeof(hddarg), hddarg, &RET);
+    DPRINTF(" [PS2HDD ext]: ret=%d, ID=%d\n", RET, ID);
+    if (ID < 0 || RET == 1)
+        return -4;
+
+    HDDSTAT = CheckHDD();
+    hdd_usable = !(HDDSTAT < 0);
+    HDD_USABLE = hdd_usable;
+
+    if (hdd_usable) {
+        ID = SifLoadStartModule(CheckPath(pfs_path), 0, NULL, &RET);
+        DPRINTF(" [PS2FS ext]: ret=%d, ID=%d\n", RET, ID);
+        if (ID < 0 || RET == 1)
+            return -5;
+    }
+
+    return 0;
+}
+
+int LoadHDDIRX(void)
+{
+    int HDDSTAT;
+#ifdef HDD
+    int ID, RET;
+    static const char hddarg[] = "-o"
+                                 "\0"
+                                 "4"
+                                 "\0"
+                                 "-n"
+                                 "\0"
+                                 "20";
     if (!loadDEV9())
         return -1;
 
@@ -883,10 +957,11 @@ int LoadHDDIRX(void)
         return -4;
 
     HDDSTAT = CheckHDD();
-    HDD_USABLE = !(HDDSTAT < 0);
+    hdd_usable = !(HDDSTAT < 0);
+    HDD_USABLE = hdd_usable;
 
     /* PS2FS.IRX */
-    if (HDD_USABLE) {
+    if (hdd_usable) {
         ID = SifExecModuleBuffer(&ps2fs_irx, size_ps2fs_irx, 0, NULL, &RET);
         DPRINTF(" [PS2FS]: ret=%d, ID=%d\n", RET, ID);
         if (ID < 0 || RET == 1)
@@ -894,6 +969,9 @@ int LoadHDDIRX(void)
     }
 
     return 0;
+#elif defined(HDD_RUNTIME)
+    return LoadHDDIRXExternal();
+#endif
 }
 
 int MountParty(const char *path)
@@ -1225,7 +1303,7 @@ void credits(void)
 #ifdef MX4SIO
                " MX4SIO"
 #endif
-#ifdef HDD
+#if defined(HDD) || defined(HDD_RUNTIME)
                " HDD "
 #endif
 
