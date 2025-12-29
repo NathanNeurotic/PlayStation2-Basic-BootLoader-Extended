@@ -35,9 +35,9 @@ static const char *const DEFAULT_CONFIG_PATHS[SOURCE_COUNT] = {
 const char *CONFIG_PATHS[SOURCE_COUNT];
 
 const char *const DEFPATH[] = {
-    "mc?:/BOOT/ULE.ELF", // AUTO [0]
-    "mc?:/APPS/ULE/ELF",
-    "mass:/BOOT/BOOT.ELF",
+    "mc?:/BOOT/BOOT.ELF", // AUTO [0]
+    "mc?:/BOOT/BOOT2.ELF",
+    "mass:/RESCUE.ELF",
     "mass:/PS2BBL/L2[1].ELF", // L2 [3]
     "mass:/PS2BBL/L2[2].ELF",
     "mass:/PS2BBL/L2[3].ELF",
