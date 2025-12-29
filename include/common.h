@@ -8,7 +8,7 @@ enum
 #ifdef MX4SIO
     SOURCE_MX4SIO,
 #endif
-#ifdef HDD
+#if defined(HDD) || defined(HDD_RUNTIME)
     SOURCE_HDD,
 #endif
 #ifdef XFROM

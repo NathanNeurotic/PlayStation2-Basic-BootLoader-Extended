@@ -7,7 +7,7 @@ const char *const SOURCES[SOURCE_COUNT] = {
 #ifdef MX4SIO
     "mx4sio",
 #endif
-#ifdef HDD
+#if defined(HDD) || defined(HDD_RUNTIME)
     "hdd",
 #endif
 #ifdef XFROM

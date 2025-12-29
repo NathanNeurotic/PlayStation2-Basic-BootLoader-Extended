@@ -24,6 +24,7 @@ XCDVD_READKEY ?= 0 # Enable the newer sceCdReadKey checks, which are only suppor
 UDPTTY ?= 0 # printf over UDP
 PPCTTY ?= 0 # printf over PowerPC UART
 PRINTF ?= NONE
+HDD_RUNTIME ?= 0 # allow runtime HDD enablement via external IRX
 
 HOMEBREW_IRX ?= 0 # if we need homebrew SIO2MAN, MCMAN, MCSERV & PADMAN embedded, else, builtin console drivers are used
 FILEXIO_NEED ?= 0 # if we need filexio and imanx loaded for other features (HDD, mx4sio, etc)
@@ -178,6 +179,14 @@ ifeq ($(HDD), 1)
   FILEXIO_NEED = 1
   DEV9_NEED = 1
   KELFTYPE = HDD
+endif
+
+ifeq ($(HDD_RUNTIME), 1)
+  $(info --- runtime HDD enablement support enabled)
+  EE_CFLAGS += -DHDD_RUNTIME
+  FILEXIO_NEED = 1
+  DEV9_NEED = 1
+  EE_LIBS += -lpoweroff
 endif
 
 ifeq ($(UDPTTY), 1)
