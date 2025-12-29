@@ -113,16 +113,16 @@ jobs:
           path: |
             release/*
 
-      - name: Create prerelease
-        if: github.ref == 'refs/heads/main'
-        uses: mathieucarbou/marvinpinto-action-automatic-releases@latest
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: true
-          automatic_release_tag: "latest"
-          title: "Latest development build"
-          files: |
-            PS2BBL.7z
+#      - name: Create prerelease
+#        if: github.ref == 'refs/heads/main'
+#        uses: mathieucarbou/marvinpinto-action-automatic-releases@latest
+#        with:
+#          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+#          prerelease: true
+#          automatic_release_tag: "latest"
+#          title: "Latest development build"
+#          files: |
+#            PS2BBL.7z
 
   osdmenu:
     runs-on: ubuntu-latest
