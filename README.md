@@ -9,6 +9,7 @@
   A flexible BootLoader for PlayStation 2™ and PSX-DESR
 </p>
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/14305e388344440098481de06cf7817e)](https://app.codacy.com/gh/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended?utm_source=github.com&utm_medium=referral&utm_content=NathanNeurotic/PlayStation2-Basic-BootLoader-Extended&utm_campaign=Badge_Grade)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/4ea4628e3d444807bf5df8430a327c5b)](https://www.codacy.com/gh/israpps/PlayStation2-Basic-BootLoader/dashboard)
 [![CI](https://github.com/israpps/PlayStation2-Basic-BootLoader/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/israpps/PlayStation2-Basic-BootLoader/actions/workflows/CI.yml)
 ![GitHub all releases](https://img.shields.io/github/downloads/israpps/PlayStation2-Basic-BootLoader/total?logo=GitHub&logoColor=white)
