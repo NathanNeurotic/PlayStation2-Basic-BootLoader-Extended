@@ -19,12 +19,16 @@ PSX ?= 0 # PSX DESR support
 HDD ?= 0 #wether to add internal HDD support
 MMCE ?= 0
 MX4SIO ?= 0
+XFROM ?= 0
 PROHBIT_DVD_0100 ?= 0 # prohibit the DVD Players v1.00 and v1.01 from being booted.
 XCDVD_READKEY ?= 0 # Enable the newer sceCdReadKey checks, which are only supported by a newer CDVDMAN module.
 UDPTTY ?= 0 # printf over UDP
 PPCTTY ?= 0 # printf over PowerPC UART
 PRINTF ?= NONE
 HDD_RUNTIME ?= 0 # allow runtime HDD enablement via external IRX
+MX4SIO_RUNTIME ?= 0
+MMCE_RUNTIME ?= 0
+XFROM_RUNTIME ?= 0
 
 HOMEBREW_IRX ?= 0 # if we need homebrew SIO2MAN, MCMAN, MCSERV & PADMAN embedded, else, builtin console drivers are used
 FILEXIO_NEED ?= 0 # if we need filexio and imanx loaded for other features (HDD, mx4sio, etc)
@@ -108,6 +112,52 @@ ifeq ($(MMCE), 1)
   ifeq ($(MX4SIO), 1)
     $(error MX4SIO cant coexist with MMCE)
   endif
+endif
+
+ifeq ($(MX4SIO_RUNTIME), 1)
+  HOMEBREW_IRX = 1
+  FILEXIO_NEED = 1
+  EE_CFLAGS += -DMX4SIO_RUNTIME
+  ifeq ($(MX4SIO), 1)
+    $(error MX4SIO_RUNTIME cant coexist with MX4SIO)
+  endif
+  ifeq ($(MMCE), 1)
+    $(error MX4SIO_RUNTIME cant coexist with MMCE)
+  endif
+  ifeq ($(MMCE_RUNTIME), 1)
+    $(error MX4SIO_RUNTIME cant coexist with MMCE_RUNTIME)
+  endif
+  ifeq ($(USE_ROM_SIO2MAN), 1)
+    $(error MX4SIO runtime needs Homebrew SIO2MAN to work)
+  endif
+endif
+
+ifeq ($(MMCE_RUNTIME), 1)
+  HOMEBREW_IRX = 1
+  FILEXIO_NEED = 1
+  EE_CFLAGS += -DMMCE_RUNTIME
+  ifeq ($(MMCE), 1)
+    $(error MMCE_RUNTIME cant coexist with MMCE)
+  endif
+  ifeq ($(MX4SIO), 1)
+    $(error MX4SIO cant coexist with MMCE_RUNTIME)
+  endif
+  ifeq ($(MX4SIO_RUNTIME), 1)
+    $(error MX4SIO_RUNTIME cant coexist with MMCE_RUNTIME)
+  endif
+  ifeq ($(USE_ROM_SIO2MAN), 1)
+    $(error MMCE runtime needs Homebrew SIO2MAN to work)
+  endif
+endif
+
+ifeq ($(XFROM), 1)
+  FILEXIO_NEED = 1
+  EE_CFLAGS += -DXFROM
+endif
+
+ifeq ($(XFROM_RUNTIME), 1)
+  FILEXIO_NEED = 1
+  EE_CFLAGS += -DXFROM_RUNTIME
 endif
 
 ifeq ($(HOMEBREW_IRX), 1)

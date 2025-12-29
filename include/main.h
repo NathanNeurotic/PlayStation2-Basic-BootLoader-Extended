@@ -114,7 +114,7 @@ void poweroffCallback(void *arg);
 #define MPART NULL
 #endif
 
-#ifdef MX4SIO
+#if defined(MX4SIO) || defined(MX4SIO_RUNTIME)
 int LookForBDMDevice(void);
 #endif
 

@@ -4,22 +4,12 @@ const char *const SOURCES[SOURCE_COUNT] = {
     "mc0",
     "mc1",
     "usb",
-#ifdef MX4SIO
     "mx4sio",
-#endif
-#if defined(HDD) || defined(HDD_RUNTIME)
     "hdd",
-#endif
-#ifdef XFROM
     "xfrom",
-#endif
-#ifdef MMCE
     "mmce0",
     "mmce1",
-#endif
-#ifdef PSX
     "XCONF",
-#endif
     "CWD",
     "NOT FOUND",
 };
