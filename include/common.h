@@ -1,6 +1,6 @@
 #ifndef COMMONDEF
 #define COMMONDEF
-enum
+typedef enum
 {
     SOURCE_MC0 = 0,
     SOURCE_MC1,
@@ -36,7 +36,7 @@ extern const char *const SOURCES[SOURCE_COUNT];
 #define DEFDELAY 5000
 
 /** dualshock keys enumerator */
-enum
+typedef enum
 {
     AUTO,
     SELECT,

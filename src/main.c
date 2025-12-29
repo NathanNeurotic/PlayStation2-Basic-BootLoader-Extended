@@ -64,7 +64,7 @@ char *EXECPATHS[3];
 u8 ROMVER[16];
 int PAD = 0;
 static int config_source = SOURCE_INVALID;
-unsigned char *config_buf = NULL; // pointer to allocated config file
+char *config_buf = NULL; // pointer to allocated config file
 static char *keypath_store[17][3];
 static u8 keypath_allocated[17][3];
 static int config_enable_hdd = 0;
@@ -719,10 +719,12 @@ void SetDefaultSettings(void)
 int LoadUSBIRX(void)
 {
     int ID, RET;
+#ifndef HAS_EMBEDDED_IRX
     char bdm_path[] = "mc?:/PS2BBL/BDM.IRX";
     char bdmfs_fatfs_path[] = "mc?:/PS2BBL/BDMFS_FATFS.IRX";
     char usbd_path[] = "mc?:/PS2BBL/USBD.IRX";
     char usbmass_bd_path[] = "mc?:/PS2BBL/USBMASS_BD.IRX";
+#endif
 
 // ------------------------------------------------------------------------------------ //
 #ifdef HAS_EMBEDDED_IRX
