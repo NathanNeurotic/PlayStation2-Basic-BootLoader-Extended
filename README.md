@@ -9,9 +9,14 @@
   A flexible BootLoader for PlayStation 2™ and PSX-DESR
 </p>
 
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/4ea4628e3d444807bf5df8430a327c5b)](https://www.codacy.com/gh/israpps/PlayStation2-Basic-BootLoader/dashboard)
-[![CI](https://github.com/israpps/PlayStation2-Basic-BootLoader/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/israpps/PlayStation2-Basic-BootLoader/actions/workflows/CI.yml)
-![GitHub all releases](https://img.shields.io/github/downloads/israpps/PlayStation2-Basic-BootLoader/total?logo=GitHub&logoColor=white)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/8a5773aa30cf4aca97550ec8053908d6)](
+https://app.codacy.com/gh/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/dashboard
+)
+[![CI](https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/actions/workflows/CI.yml/badge.svg?branch=main)](
+https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/actions/workflows/CI.yml
+)
+![GitHub all releases](https://img.shields.io/github/downloads/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/total?logo=GitHub&logoColor=white)
+
 
 ---
 
@@ -26,9 +31,12 @@ The boot process is deterministic, with a clearly defined configuration search o
 
 ## Documentation
 
-Full documentation is available on GitHub Pages:  
+Full original documentation is available on GitHub Pages:  
 👉 https://israpps.github.io/PlayStation2-Basic-BootLoader/
-
+This Repo is Forked from:
+👉 https://github.com/pcm720/PlayStation2-Basic-BootLoader
+This Repo's ReadMe.md has been modified from its original version to reflect this fork's documentation.
+As a result, it is recommended to familiarize yourself with this PS2BBLE documentation before continuing, even if you are familiar with PS2BBL.
 ---
 
 ## Configuration Model (Read This First)
