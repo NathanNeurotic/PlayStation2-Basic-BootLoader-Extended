@@ -15,7 +15,7 @@ IMPORT_BIN2C(padman_irx);
 IMPORT_BIN2C(psx_ioprp);
 #endif
 
-#ifdef MMCE
+#if defined(MMCE) || defined(MMCE_RUNTIME)
 IMPORT_BIN2C(mmceman_irx);
 #endif
 
@@ -38,7 +38,7 @@ IMPORT_BIN2C(netman_irx);
 IMPORT_BIN2C(smap_irx);
 #endif
 
-#ifdef MX4SIO
+#if defined(MX4SIO) || defined(MX4SIO_RUNTIME)
 IMPORT_BIN2C(mx4sio_bd_irx);
 #ifdef USE_ROM_SIO2MAN
 #error MX4SIO needs Homebrew SIO2MAN to work
