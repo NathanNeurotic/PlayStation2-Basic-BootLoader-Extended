@@ -16,6 +16,46 @@ u8 ROMVER[16];
 int PAD = 0;
 static int config_source = SOURCE_INVALID;
 unsigned char *config_buf = NULL; // pointer to allocated config file
+static char *keypath_store[17][3];
+static u8 keypath_allocated[17][3];
+
+static void ResetKeypathStorage(void)
+{
+    int i, j;
+    for (i = 0; i < 17; i++) {
+        for (j = 0; j < 3; j++) {
+            if (keypath_allocated[i][j] && keypath_store[i][j]) {
+                free(keypath_store[i][j]);
+            }
+            keypath_store[i][j] = NULL;
+            keypath_allocated[i][j] = 0;
+            GLOBCFG.KEYPATHS[i][j] = NULL;
+        }
+    }
+}
+
+static int StoreKeypathCopy(int key_index, int path_index, const char *value)
+{
+    char *copy;
+
+    if (value == NULL)
+        return -1;
+
+    copy = strdup(value);
+    if (copy == NULL) {
+        DPRINTF("Failed to store keypath[%d][%d]: strdup failed\n", key_index, path_index);
+        return -1;
+    }
+
+    if (keypath_allocated[key_index][path_index] && keypath_store[key_index][path_index]) {
+        free(keypath_store[key_index][path_index]);
+    }
+
+    keypath_store[key_index][path_index] = copy;
+    keypath_allocated[key_index][path_index] = 1;
+    GLOBCFG.KEYPATHS[key_index][path_index] = copy;
+    return 0;
+}
 int main(int argc, char *argv[])
 {
     u32 STAT;
@@ -275,13 +315,17 @@ int main(int argc, char *argv[])
                             for (j = 0; j < 3; j++) {
                                 sprintf(TMP, "LK_%s_E%d", KEYS_ID[x], j + 1);
                                 if (!strcmp(name, TMP)) {
-                                    GLOBCFG.KEYPATHS[x][j] = value;
+                                    if (StoreKeypathCopy(x, j, value) != 0) {
+                                        DPRINTF("Failed to duplicate config path for %s\n", name);
+                                    }
                                     break;
                                 }
                             }
                         }
                     }
                 }
+                free(config_buf);
+                config_buf = NULL;
             } else {
                 fclose(fp);
                 DPRINTF("\tERROR: could not read %d bytes of config file, only %d readed\n", cnf_size, temp);
@@ -309,11 +353,21 @@ int main(int argc, char *argv[])
                 DPRINTF("ERROR: Could not unmount 'pfs0:'\n");
         }
 #endif
+        if (config_buf != NULL) {
+            free(config_buf);
+            config_buf = NULL;
+        }
     } else {
         scr_printf("Can't find config, loading hardcoded paths\n");
         for (x = 0; x < 5; x++)
-            for (j = 0; j < 3; j++)
-                GLOBCFG.KEYPATHS[x][j] = CheckPath(DEFPATH[3 * x + j]);
+            for (j = 0; j < 3; j++) {
+                if (StoreKeypathCopy(x, j, DEFPATH[3 * x + j]) != 0) {
+                    DPRINTF("Failed to duplicate default path LK_%s_E%d\n", KEYS_ID[x], j + 1);
+                    GLOBCFG.KEYPATHS[x][j] = DEFPATH[3 * x + j];
+                    keypath_store[x][j] = GLOBCFG.KEYPATHS[x][j];
+                    keypath_allocated[x][j] = 0;
+                }
+            }
         sleep(1);
     }
 
@@ -518,9 +572,15 @@ char *CheckPath(char *path)
 void SetDefaultSettings(void)
 {
     int i, j;
+    ResetKeypathStorage();
     for (i = 0; i < 17; i++)
-        for (j = 0; j < 3; j++)
-            GLOBCFG.KEYPATHS[i][j] = "isra:/";
+        for (j = 0; j < 3; j++) {
+            if (StoreKeypathCopy(i, j, "isra:/") != 0) {
+                GLOBCFG.KEYPATHS[i][j] = "isra:/";
+                keypath_store[i][j] = GLOBCFG.KEYPATHS[i][j];
+                keypath_allocated[i][j] = 0;
+            }
+        }
     GLOBCFG.SKIPLOGO = 0;
     GLOBCFG.OSDHISTORY_READ = 1;
     GLOBCFG.DELAY = DEFDELAY;
@@ -1029,10 +1089,6 @@ static void AlarmCallback(s32 alarm_id, u16 time, void *common)
 void CleanUp(void)
 {
     sceCdInit(SCECdEXIT);
-    if (config_buf) {
-        free(config_buf);
-        config_buf = NULL;
-    }
     PadDeinitPads();
 }
 
