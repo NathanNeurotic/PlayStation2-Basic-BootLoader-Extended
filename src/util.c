@@ -154,8 +154,10 @@ int getMountInfo(char *path, char *mountString, size_t mountStringSize, char *mo
     char **tokens = str_split(path, ':');
     int ret = -EINVAL;
 
-    if (!tokens)
-        return -ENOMEM;
+    if (!tokens) {
+        ret = -ENOMEM;
+        goto cleanup;
+    }
 
     for (i = 0; *(tokens + i); i++)
         ;
@@ -214,10 +216,12 @@ int getMountInfo(char *path, char *mountString, size_t mountStringSize, char *mo
     ret = 0;
 
 cleanup:
-    for (int idx = 0; *(tokens + idx); idx++) {
-        free(*(tokens + idx));
+    if (tokens) {
+        for (int idx = 0; *(tokens + idx); idx++) {
+            free(*(tokens + idx));
+        }
+        free(tokens);
     }
-    free(tokens);
 
     return ret;
 }
