@@ -63,3 +63,49 @@ jobs:
         with:
           name: ps2bbl-${{ matrix.name }}-${{ steps.meta.outputs.short_sha }}
           path: build/variants/${{ matrix.name }}
+
+  prerelease:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          pattern: ps2bbl-*
+
+      - name: Archive artifacts
+        run: |
+          mkdir -p release-packages
+          for dir in release-artifacts/*; do
+            [ -d "$dir" ] || continue
+            base=$(basename "$dir")
+            tar -czf "release-packages/${base}.tar.gz" -C "$dir" .
+          done
+
+      - name: Prepare release notes
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          {
+            echo "Automated CL prerelease for ${GITHUB_SHA}"
+            echo
+            echo "Artifacts:"
+            for file in release-packages/*; do
+              echo "- $(basename "$file")"
+            done
+          } > RELEASE_BODY.md
+
+      - name: Publish prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: cl-${{ github.sha }}
+          name: CL prerelease ${{ github.sha }}
+          body_path: RELEASE_BODY.md
+          prerelease: true
+          overwrite: true
+          files: release-packages/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
