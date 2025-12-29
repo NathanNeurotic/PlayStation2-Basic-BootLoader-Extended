@@ -5,28 +5,18 @@ typedef enum
     SOURCE_MC0 = 0,
     SOURCE_MC1,
     SOURCE_MASS,
-#ifdef MX4SIO
     SOURCE_MX4SIO,
-#endif
-#if defined(HDD) || defined(HDD_RUNTIME)
     SOURCE_HDD,
-#endif
-#ifdef XFROM
     SOURCE_XFROM,
-#endif
-#ifdef MMCE
-    SOURCE_MMCE1,
     SOURCE_MMCE0,
-#endif
-#ifdef PSX
+    SOURCE_MMCE1,
     SOURCE_XCONFIG,
-#endif
     SOURCE_CWD,
     SOURCE_INVALID,
     SOURCE_COUNT,
 } CONFIG_SOURCES_ID;
 
-extern const char *const CONFIG_PATHS[SOURCE_COUNT];
+extern const char *CONFIG_PATHS[SOURCE_COUNT];
 extern const char *const SOURCES[SOURCE_COUNT];
 
 #define MAX_LEN     64

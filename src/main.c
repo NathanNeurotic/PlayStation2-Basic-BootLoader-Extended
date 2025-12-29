@@ -6,6 +6,7 @@
 #define RUNKELF_ARG_PREFIX "-x "
 #define RUNKELF_ARG_OVERHEAD (sizeof(RUNKELF_ARG_PREFIX)) /* includes null terminator */
 #define RUNKELF_MAX_KELF_PATH_LEN (RUNKELF_ARG_BUF_SIZE - RUNKELF_ARG_OVERHEAD)
+#define IRX_PATH_MAX 64
 
 typedef struct
 {
@@ -18,34 +19,25 @@ typedef struct
 } CONFIG;
 CONFIG GLOBCFG;
 
-const char *const CONFIG_PATHS[SOURCE_COUNT] = {
+static const char *const DEFAULT_CONFIG_PATHS[SOURCE_COUNT] = {
     "mc0:/SYS-CONF/PS2BBL.INI",
     "mc1:/SYS-CONF/PS2BBL.INI",
     "mass:/PS2BBL/CONFIG.INI",
-#ifdef MX4SIO
     "massX:/PS2BBL/CONFIG.INI",
-#endif
-#if defined(HDD) || defined(HDD_RUNTIME)
     "hdd0:__sysconf:pfs:/PS2BBL/CONFIG.INI",
-#endif
-#ifdef XFROM
     "xfrom:/PS2BBL/CONFIG.INI",
-#endif
-#ifdef MMCE
     "mmce0:/PS2BBL/PS2BBL.INI",
     "mmce1:/PS2BBL/PS2BBL.INI",
-#endif
-#ifdef PSX
     "mc?:/SYS-CONF/PSXBBL.INI",
-#endif
     "CONFIG.INI",
     "",
 };
+const char *CONFIG_PATHS[SOURCE_COUNT];
 
 const char *const DEFPATH[] = {
-    "mc?:/BOOT/ULE.ELF", // AUTO [0]
-    "mc?:/APPS/ULE/ELF",
-    "mass:/BOOT/BOOT.ELF",
+    "mc?:/BOOT/BOOT.ELF", // AUTO [0]
+    "mc?:/BOOT/BOOT2.ELF",
+    "mass:/RESCUE.ELF",
     "mass:/PS2BBL/L2[1].ELF", // L2 [3]
     "mass:/PS2BBL/L2[2].ELF",
     "mass:/PS2BBL/L2[3].ELF",
@@ -68,6 +60,22 @@ char *config_buf = NULL; // pointer to allocated config file
 static char *keypath_store[17][3];
 static u8 keypath_allocated[17][3];
 static int config_enable_hdd = 0;
+static u8 config_path_enabled[SOURCE_COUNT];
+#if defined(MX4SIO) || defined(MX4SIO_RUNTIME)
+static int config_enable_mx4sio = 0;
+static int config_enable_mx4sio_seen = 0;
+static int mx4sio_started = 0;
+#endif
+#if defined(MMCE) || defined(MMCE_RUNTIME)
+static int config_enable_mmce = 0;
+static int config_enable_mmce_seen = 0;
+static int mmce_started = 0;
+#endif
+#if defined(XFROM) || defined(XFROM_RUNTIME)
+static int config_enable_xfrom = 0;
+static int config_enable_xfrom_seen = 0;
+static int xfrom_started = 0;
+#endif
 #if defined(HDD_RUNTIME) && !defined(HDD)
 static int hdd_runtime_started = 0;
 #endif
@@ -131,6 +139,165 @@ static int StoreKeypathCopy(int key_index, int path_index, const char *value)
     GLOBCFG.KEYPATHS[key_index][path_index] = copy;
     return 0;
 }
+
+static void InitConfigPathState(void)
+{
+    memcpy(CONFIG_PATHS, DEFAULT_CONFIG_PATHS, sizeof(CONFIG_PATHS));
+    memset(config_path_enabled, 0, sizeof(config_path_enabled));
+    config_path_enabled[SOURCE_MC0] = 1;
+    config_path_enabled[SOURCE_MC1] = 1;
+    config_path_enabled[SOURCE_MASS] = 1;
+    config_path_enabled[SOURCE_CWD] = 1;
+#ifdef PSX
+    config_path_enabled[SOURCE_XCONFIG] = 1;
+#endif
+}
+
+static void EnableConfigPath(CONFIG_SOURCES_ID source)
+{
+    if (source < SOURCE_COUNT)
+        config_path_enabled[source] = 1;
+}
+
+static int IsConfigPathEnabled(CONFIG_SOURCES_ID source)
+{
+    if (source >= SOURCE_COUNT)
+        return 0;
+    return config_path_enabled[source];
+}
+
+static void InitRuntimeEnables(void)
+{
+#if defined(MX4SIO) || defined(MX4SIO_RUNTIME)
+    config_enable_mx4sio = 0;
+#if defined(MX4SIO)
+    config_enable_mx4sio = 1;
+#endif
+#endif
+#if defined(MMCE) || defined(MMCE_RUNTIME)
+    config_enable_mmce = 0;
+#if defined(MMCE)
+    config_enable_mmce = 1;
+#endif
+#endif
+#if defined(XFROM) || defined(XFROM_RUNTIME)
+    config_enable_xfrom = 0;
+#if defined(XFROM)
+    config_enable_xfrom = 1;
+#endif
+#endif
+}
+
+#if defined(MX4SIO) || defined(MX4SIO_RUNTIME)
+static int StartMX4SIO(void)
+{
+    int err = -4;
+    int ID, RET;
+
+    if (mx4sio_started)
+        return 0;
+#if defined(MX4SIO)
+    ID = SifExecModuleBuffer(mx4sio_bd_irx, size_mx4sio_bd_irx, 0, NULL, &RET);
+    DPRINTF(" [MX4SIO_BD]: ID=%d, ret=%d\n", ID, RET);
+    if (ID < 0 || RET == 1) {
+        err = -1;
+    } else {
+        mx4sio_started = 1;
+        EnableConfigPath(SOURCE_MX4SIO);
+        return 0;
+    }
+#endif
+#if defined(MX4SIO_RUNTIME)
+    char module_path[IRX_PATH_MAX];
+    int locate_ret = LocateExternalIRXPath("mx4sio_bd.irx", module_path, sizeof(module_path));
+    if (locate_ret < 0) {
+        err = -2;
+    } else {
+        ID = SifLoadStartModule(module_path, 0, NULL, &RET);
+        DPRINTF(" [MX4SIO_BD ext]: ret=%d, ID=%d\n", RET, ID);
+        if (ID < 0 || RET == 1) {
+            err = -3;
+        } else {
+            mx4sio_started = 1;
+            EnableConfigPath(SOURCE_MX4SIO);
+            return 0;
+        }
+    }
+#endif
+    return err;
+}
+#endif
+
+#if defined(MMCE) || defined(MMCE_RUNTIME)
+static int StartMMCE(void)
+{
+    int err = -4;
+    int ID, RET;
+
+    if (mmce_started)
+        return 0;
+#if defined(MMCE)
+    ID = SifExecModuleBuffer(mmceman_irx, size_mmceman_irx, 0, NULL, &RET);
+    DPRINTF(" [MMCEMAN]: ID=%d, ret=%d\n", ID, RET);
+    if (ID < 0 || RET == 1) {
+        err = -1;
+    } else {
+        mmce_started = 1;
+        EnableConfigPath(SOURCE_MMCE0);
+        EnableConfigPath(SOURCE_MMCE1);
+        return 0;
+    }
+#endif
+#if defined(MMCE_RUNTIME)
+    char module_path[IRX_PATH_MAX];
+    int locate_ret = LocateExternalIRXPath("mmceman.irx", module_path, sizeof(module_path));
+    if (locate_ret < 0) {
+        err = -2;
+    } else {
+        ID = SifLoadStartModule(module_path, 0, NULL, &RET);
+        DPRINTF(" [MMCEMAN ext]: ret=%d, ID=%d\n", RET, ID);
+        if (ID < 0 || RET == 1) {
+            err = -3;
+        } else {
+            mmce_started = 1;
+            EnableConfigPath(SOURCE_MMCE0);
+            EnableConfigPath(SOURCE_MMCE1);
+            return 0;
+        }
+    }
+#endif
+    return err;
+}
+#endif
+
+#if defined(XFROM) || defined(XFROM_RUNTIME)
+static int StartXFROM(void)
+{
+    int err = -4;
+    int ID, RET;
+
+    if (xfrom_started)
+        return 0;
+#if defined(XFROM) || defined(XFROM_RUNTIME)
+    char module_path[IRX_PATH_MAX];
+    int locate_ret = LocateExternalIRXPath("xfromman.irx", module_path, sizeof(module_path));
+    if (locate_ret < 0) {
+        err = -2;
+    } else {
+        ID = SifLoadStartModule(module_path, 0, NULL, &RET);
+        DPRINTF(" [XFROMMAN ext]: ret=%d, ID=%d\n", RET, ID);
+        if (ID < 0 || RET == 1) {
+            err = -3;
+        } else {
+            xfrom_started = 1;
+            EnableConfigPath(SOURCE_XFROM);
+            return 0;
+        }
+    }
+#endif
+    return err;
+}
+#endif
 int main(int argc, char *argv[])
 {
     u32 STAT;
@@ -221,18 +388,42 @@ int main(int argc, char *argv[])
     }
 #endif
 
-#ifdef MMCE
-    j = SifExecModuleBuffer(mmceman_irx, size_mmceman_irx, 0, NULL, &x);
-    DPRINTF(" [MMCEMAN]: ID=%d, ret=%d\n", j, x);
+    InitConfigPathState();
+    InitRuntimeEnables();
+
+#if defined(MMCE) || defined(MMCE_RUNTIME)
+    if (config_enable_mmce) {
+        j = StartMMCE();
+        if (j < 0)
+            DPRINTF(" [MMCEMAN] runtime enable failed (%d)\n", j);
+    } else {
+        config_path_enabled[SOURCE_MMCE0] = 0;
+        config_path_enabled[SOURCE_MMCE1] = 0;
+    }
 #endif
 
-#ifdef MX4SIO
-    j = SifExecModuleBuffer(mx4sio_bd_irx, size_mx4sio_bd_irx, 0, NULL, &x);
-    DPRINTF(" [MX4SIO_BD]: ID=%d, ret=%d\n", j, x);
+#if defined(MX4SIO) || defined(MX4SIO_RUNTIME)
+    if (config_enable_mx4sio) {
+        j = StartMX4SIO();
+        if (j < 0)
+            DPRINTF(" [MX4SIO_BD] runtime enable failed (%d)\n", j);
+    } else {
+        config_path_enabled[SOURCE_MX4SIO] = 0;
+    }
+#endif
+
+#if defined(XFROM) || defined(XFROM_RUNTIME)
+    if (config_enable_xfrom) {
+        j = StartXFROM();
+        if (j < 0)
+            DPRINTF(" [XFROM] runtime enable failed (%d)\n", j);
+    } else {
+        config_path_enabled[SOURCE_XFROM] = 0;
+    }
 #endif
 
 #ifdef HDD
-    else if (LoadHDDIRX() < 0) // only load HDD crap if filexio and iomanx are up and running
+    if (LoadHDDIRX() < 0) // only load HDD crap if filexio and iomanx are up and running
     {
         scr_setbgcolor(0x0000ff);
         scr_clear();
@@ -343,6 +534,8 @@ int main(int argc, char *argv[])
 
     FILE *fp;
     for (x = SOURCE_CWD; x >= SOURCE_MC0; x--) {
+        if (!IsConfigPathEnabled(x))
+            continue;
         char *config_path = strdup(CONFIG_PATHS[x]);
         if (config_path == NULL) {
             DPRINTF("Failed to duplicate config path for source %d\n", x);
@@ -417,6 +610,27 @@ int main(int argc, char *argv[])
                         config_enable_hdd = atoi(value);
                         continue;
                     }
+#if defined(MX4SIO) || defined(MX4SIO_RUNTIME)
+                    if (!strcmp("MX4SIO_ENABLE", name)) {
+                        config_enable_mx4sio_seen = 1;
+                        config_enable_mx4sio = atoi(value);
+                        continue;
+                    }
+#endif
+#if defined(MMCE) || defined(MMCE_RUNTIME)
+                    if (!strcmp("MMCE_ENABLE", name)) {
+                        config_enable_mmce_seen = 1;
+                        config_enable_mmce = atoi(value);
+                        continue;
+                    }
+#endif
+#if defined(XFROM) || defined(XFROM_RUNTIME)
+                    if (!strcmp("XFROM_ENABLE", name)) {
+                        config_enable_xfrom_seen = 1;
+                        config_enable_xfrom = atoi(value);
+                        continue;
+                    }
+#endif
                     if (!strncmp("LK_", name, 3)) {
                         if (!strncmp(value, RUNKELF_PREFIX, RUNKELF_PREFIX_LEN)) {
                             const char *kelf_path = value + RUNKELF_PREFIX_LEN;
@@ -496,6 +710,43 @@ int main(int argc, char *argv[])
         }
         if (hdd_ret == 0)
             hdd_runtime_started = 1;
+    }
+#endif
+#if defined(MX4SIO) || defined(MX4SIO_RUNTIME)
+    if (config_enable_mx4sio) {
+        int mx4sio_ret = StartMX4SIO();
+        if (mx4sio_ret < 0 && config_enable_mx4sio_seen) {
+            scr_setfontcolor(0x0000ff);
+            scr_printf("MX4SIO enable failed (%d)\n", mx4sio_ret);
+            scr_setfontcolor(0xffffff);
+        }
+    } else {
+        config_path_enabled[SOURCE_MX4SIO] = 0;
+    }
+#endif
+#if defined(MMCE) || defined(MMCE_RUNTIME)
+    if (config_enable_mmce) {
+        int mmce_ret = StartMMCE();
+        if (mmce_ret < 0 && config_enable_mmce_seen) {
+            scr_setfontcolor(0x0000ff);
+            scr_printf("MMCE enable failed (%d)\n", mmce_ret);
+            scr_setfontcolor(0xffffff);
+        }
+    } else {
+        config_path_enabled[SOURCE_MMCE0] = 0;
+        config_path_enabled[SOURCE_MMCE1] = 0;
+    }
+#endif
+#if defined(XFROM) || defined(XFROM_RUNTIME)
+    if (config_enable_xfrom) {
+        int xfrom_ret = StartXFROM();
+        if (xfrom_ret < 0 && config_enable_xfrom_seen) {
+            scr_setfontcolor(0x0000ff);
+            scr_printf("XFROM enable failed (%d)\n", xfrom_ret);
+            scr_setfontcolor(0xffffff);
+        }
+    } else {
+        config_path_enabled[SOURCE_XFROM] = 0;
     }
 #endif
 
@@ -642,6 +893,32 @@ void runKELF(const char *kelfpath)
     LoadExecPS2("moduleload", 4, args);
 }
 
+static int LocateExternalIRXPath(const char *filename, char *resolved_path, size_t resolved_size)
+{
+    size_t i;
+    static const char *const search_templates[] = {
+        "mc0:/SYS-CONF/PS2BBL/%s",
+        "mc1:/SYS-CONF/PS2BBL/%s",
+        "mc?:/SYS-CONF/%s",
+    };
+
+    if ((filename == NULL) || (resolved_path == NULL) || (resolved_size == 0))
+        return -1;
+
+    for (i = 0; i < (sizeof(search_templates) / sizeof(search_templates[0])); i++) {
+        int ret = snprintf(resolved_path, resolved_size, search_templates[i], filename);
+        if (ret < 0 || (size_t)ret >= resolved_size)
+            return -2;
+        char *checked_path = CheckPath(resolved_path);
+        if (checked_path != NULL && exist(checked_path)) {
+            return 0;
+        }
+    }
+
+    resolved_path[0] = '\0';
+    return -3;
+}
+
 char *CheckPath(char *path)
 {
     size_t path_len;
@@ -680,7 +957,7 @@ char *CheckPath(char *path)
             if (exist(path))
                 return path;
         }
-#ifdef MMCE
+#if defined(MMCE) || defined(MMCE_RUNTIME)
     } else if ((path_len >= 5) && !strncmp("mmce?", path, 5)) {
         path[4] = (config_source == SOURCE_MMCE1) ? '1' : '0';
         if (exist(path)) {
@@ -703,7 +980,7 @@ char *CheckPath(char *path)
         if (!MountParty(path))
             return strstr(path, "pfs:");
 #endif
-#ifdef MX4SIO
+#if defined(MX4SIO) || defined(MX4SIO_RUNTIME)
     } else if ((path_len >= 6) && !strncmp("massX:", path, 6)) {
         int x = LookForBDMDevice();
         if (x >= 0)
@@ -795,7 +1072,7 @@ int LoadUSBIRX(void)
 }
 
 
-#ifdef MX4SIO
+#if defined(MX4SIO) || defined(MX4SIO_RUNTIME)
 int LookForBDMDevice(void)
 {
     static char mass_path[] = "massX:";
@@ -895,18 +1172,18 @@ static int LoadHDDIRXExternal(void)
                                  "-n"
                                  "\0"
                                  "20";
-    char dev9_path[] = "mc?:/SYS-CONF/PS2DEV9.IRX";
-    char poweroff_path[] = "mc?:/SYS-CONF/POWEROFF.IRX";
-    char atad_path[] = "mc?:/SYS-CONF/PS2ATAD.IRX";
-    char hdd_path[] = "mc?:/SYS-CONF/PS2HDD.IRX";
-    char pfs_path[] = "mc?:/SYS-CONF/PS2FS.IRX";
+    char module_path[IRX_PATH_MAX];
 
-    ID = SifLoadStartModule(CheckPath(dev9_path), 0, NULL, &RET);
+    if (LocateExternalIRXPath("PS2DEV9.IRX", module_path, sizeof(module_path)) < 0)
+        return -1;
+    ID = SifLoadStartModule(module_path, 0, NULL, &RET);
     DPRINTF("[DEV9 ext]: ret=%d, ID=%d\n", RET, ID);
     if (ID < 0 && RET == 1)
         return -1;
 
-    ID = SifLoadStartModule(CheckPath(poweroff_path), 0, NULL, &RET);
+    if (LocateExternalIRXPath("POWEROFF.IRX", module_path, sizeof(module_path)) < 0)
+        return -2;
+    ID = SifLoadStartModule(module_path, 0, NULL, &RET);
     DPRINTF(" [POWEROFF ext]: ret=%d, ID=%d\n", RET, ID);
     if (ID < 0 || RET == 1)
         return -2;
@@ -915,12 +1192,16 @@ static int LoadHDDIRXExternal(void)
     poweroffSetCallback(&poweroffCallback, NULL);
     DPRINTF("PowerOFF Callback installed (ext)...\n");
 
-    ID = SifLoadStartModule(CheckPath(atad_path), 0, NULL, &RET);
+    if (LocateExternalIRXPath("PS2ATAD.IRX", module_path, sizeof(module_path)) < 0)
+        return -3;
+    ID = SifLoadStartModule(module_path, 0, NULL, &RET);
     DPRINTF(" [ATAD ext]: ret=%d, ID=%d\n", RET, ID);
     if (ID < 0 || RET == 1)
         return -3;
 
-    ID = SifLoadStartModule(CheckPath(hdd_path), sizeof(hddarg), hddarg, &RET);
+    if (LocateExternalIRXPath("PS2HDD.IRX", module_path, sizeof(module_path)) < 0)
+        return -4;
+    ID = SifLoadStartModule(module_path, sizeof(hddarg), hddarg, &RET);
     DPRINTF(" [PS2HDD ext]: ret=%d, ID=%d\n", RET, ID);
     if (ID < 0 || RET == 1)
         return -4;
@@ -930,7 +1211,9 @@ static int LoadHDDIRXExternal(void)
     HDD_USABLE = hdd_usable;
 
     if (hdd_usable) {
-        ID = SifLoadStartModule(CheckPath(pfs_path), 0, NULL, &RET);
+        if (LocateExternalIRXPath("PS2FS.IRX", module_path, sizeof(module_path)) < 0)
+            return -5;
+        ID = SifLoadStartModule(module_path, 0, NULL, &RET);
         DPRINTF(" [PS2FS ext]: ret=%d, ID=%d\n", RET, ID);
         if (ID < 0 || RET == 1)
             return -5;
@@ -944,6 +1227,8 @@ int LoadHDDIRX(void)
 {
     static int hdd_stack_loaded = 0;
     int HDDSTAT;
+
+    config_path_enabled[SOURCE_HDD] = 0;
 
     if (hdd_stack_loaded && hdd_usable)
         return 0;
@@ -990,12 +1275,17 @@ int LoadHDDIRX(void)
             return -5;
     }
 
+    if (hdd_usable)
+        EnableConfigPath(SOURCE_HDD);
     hdd_stack_loaded = 1;
     return 0;
 #elif defined(HDD_RUNTIME)
     int ret = LoadHDDIRXExternal();
-    if (ret == 0)
+    if (ret == 0) {
         hdd_stack_loaded = 1;
+        if (hdd_usable)
+            EnableConfigPath(SOURCE_HDD);
+    }
     return ret;
 #endif
 }
@@ -1327,7 +1617,7 @@ void credits(void)
                "\t\tcompiled on "__DATE__
                " "__TIME__
                "\n"
-#ifdef MX4SIO
+#if defined(MX4SIO) || defined(MX4SIO_RUNTIME)
                " MX4SIO"
 #endif
 #if defined(HDD) || defined(HDD_RUNTIME)
