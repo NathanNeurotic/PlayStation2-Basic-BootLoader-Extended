@@ -1,5 +1,12 @@
 #include "main.h"
 // --------------- glob stuff --------------- //
+#define RUNKELF_ARG_BUF_SIZE 64
+#define RUNKELF_PREFIX "$RUNKELF:"
+#define RUNKELF_PREFIX_LEN (sizeof(RUNKELF_PREFIX) - 1)
+#define RUNKELF_ARG_PREFIX "-x "
+#define RUNKELF_ARG_OVERHEAD (sizeof(RUNKELF_ARG_PREFIX)) /* includes null terminator */
+#define RUNKELF_MAX_KELF_PATH_LEN (RUNKELF_ARG_BUF_SIZE - RUNKELF_ARG_OVERHEAD)
+
 typedef struct
 {
     int SKIPLOGO;
@@ -370,6 +377,14 @@ int main(int argc, char *argv[])
                         continue;
                     }
                     if (!strncmp("LK_", name, 3)) {
+                        if (!strncmp(value, RUNKELF_PREFIX, RUNKELF_PREFIX_LEN)) {
+                            const char *kelf_path = value + RUNKELF_PREFIX_LEN;
+                            size_t kelf_path_len = strlen(kelf_path);
+                            if (kelf_path_len > RUNKELF_MAX_KELF_PATH_LEN) {
+                                DPRINTF("Ignoring config entry %s: KELF path length %u exceeds limit %u\n", name, (unsigned)kelf_path_len, (unsigned)RUNKELF_MAX_KELF_PATH_LEN);
+                                continue;
+                            }
+                        }
                         for (x = 0; x < 17; x++) {
                             for (j = 0; j < 3; j++) {
                                 sprintf(TMP, "LK_%s_E%d", KEYS_ID[x], j + 1);
@@ -556,9 +571,18 @@ void EMERGENCY(void)
 
 void runKELF(const char *kelfpath)
 {
-    char arg3[64];
+    int ret;
+    char arg3[RUNKELF_ARG_BUF_SIZE];
     char *args[4] = {"-m rom0:SIO2MAN", "-m rom0:MCMAN", "-m rom0:MCSERV", arg3};
-    sprintf(arg3, "-x %s", kelfpath);
+
+    ret = snprintf(arg3, sizeof(arg3), RUNKELF_ARG_PREFIX "%s", kelfpath);
+    if (ret < 0 || (size_t)ret >= sizeof(arg3)) {
+        DPRINTF("runKELF: KELF path is too long (%d) for buffer size %zu\n", ret, sizeof(arg3));
+        scr_setfontcolor(0x0000ff);
+        scr_printf("ERROR: KELF path too long\n");
+        scr_setfontcolor(0xffffff);
+        return;
+    }
 
     PadDeinitPads();
     LoadExecPS2("moduleload", 4, args);
