@@ -153,7 +153,7 @@ static void InitConfigPathState(void)
 #endif
 }
 
-static void EnableConfigPath(CONFIG_SOURCES_ID source)
+static void __attribute__((unused)) EnableConfigPath(CONFIG_SOURCES_ID source)
 {
     if (source < SOURCE_COUNT)
         config_path_enabled[source] = 1;
@@ -893,7 +893,7 @@ void runKELF(const char *kelfpath)
     LoadExecPS2("moduleload", 4, args);
 }
 
-static int LocateExternalIRXPath(const char *filename, char *resolved_path, size_t resolved_size)
+static int __attribute__((unused)) LocateExternalIRXPath(const char *filename, char *resolved_path, size_t resolved_size)
 {
     size_t i;
     static const char *const search_templates[] = {
