@@ -36,6 +36,8 @@ static const char *const DEFAULT_CONFIG_PATHS[SOURCE_COUNT] = {
 };
 const char *CONFIG_PATHS[SOURCE_COUNT];
 
+static int LocateExternalIRXPath(const char *filename, char *resolved_path, size_t resolved_size);
+
 const char *const DEFPATH[] = {
     "mc?:/BOOT/BOOT.ELF", // AUTO [0]
     "mc?:/BOOT/BOOT2.ELF",
