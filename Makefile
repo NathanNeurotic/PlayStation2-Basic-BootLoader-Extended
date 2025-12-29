@@ -211,6 +211,7 @@ endif
 ifeq ($(MX4SIO_RUNTIME), 1)
   HOMEBREW_IRX = 1
   FILEXIO_NEED = 1
+  EE_OBJS += mx4sio_bd_irx.o
   EE_CFLAGS += -DMX4SIO_RUNTIME
   ifeq ($(MX4SIO), 1)
     $(error MX4SIO_RUNTIME cant coexist with MX4SIO)
@@ -229,6 +230,7 @@ endif
 ifeq ($(MMCE_RUNTIME), 1)
   HOMEBREW_IRX = 1
   FILEXIO_NEED = 1
+  EE_OBJS += mmceman_irx.o
   EE_CFLAGS += -DMMCE_RUNTIME
   ifeq ($(MMCE), 1)
     $(error MMCE_RUNTIME cant coexist with MMCE)
