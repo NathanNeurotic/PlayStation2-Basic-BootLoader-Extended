@@ -37,7 +37,13 @@ It is hosted on [github pages](https://israpps.github.io/PlayStation2-Basic-Boot
 8. `mmce0:/PS2BBL/PS2BBL.INI` then `mmce1:/PS2BBL/PS2BBL.INI` (when MMCE is built in)
 9. `mc?:/SYS-CONF/PSXBBL.INI` (PSX builds)
 
-If no config is found, built-in defaults are used.
+If no config is found, built-in defaults are used:
+
+- `AUTO`: `mc?:/BOOT/ULE.ELF`, `mc?:/APPS/ULE/ELF`, `mass:/BOOT/BOOT.ELF`
+- `SELECT`: `mass:/PS2BBL/L2[1].ELF`, `mass:/PS2BBL/L2[2].ELF`, `mass:/PS2BBL/L2[3].ELF`
+- `L3`: `mass:/PS2BBL/R2[1].ELF`, `mass:/PS2BBL/R2[2].ELF`, `mass:/PS2BBL/R2[3].ELF`
+- `R3`: `mc?:/OPL/OPNPS2LD.ELF`, `mc?:/APPS/OPNPS2LD/ELF`, `mass:/PS2BBL/OPNPS2LD.ELF`
+- `START`: `mass:/RESCUE.ELF`, `mc?:/BOOT/BOOT2.ELF`, `mc?:/APPS/ULE.ELF`
 
 **Runtime options of note (keys inside the INI):**
 - `HDD_ENABLE=1` (only when built with `HDD_RUNTIME=1`): brings up the external HDD stack (DEV9, POWEROFF, ATAD, HDD, PFS) at runtime.
@@ -66,5 +72,5 @@ you tell me ;)
 
 - Build requirements: ps2sdk toolchain installed and in `PATH`.
 - Typical build: `make` (add `HDD=1` for embedded HDD stack, or `HDD_RUNTIME=1` to enable runtime HDD with external IRX on MC).
-- Release packaging: `./mk_kelf.sh` will produce KELF variants; external IRX for runtime HDD or USB must reside in `mc?:/PS2BBL/`.
+- Release packaging: `./mk_kelf.sh` will produce KELF variants; external IRX for runtime HDD or USB must reside in `mc?:/SYS-CONF/`.
 - Config file: place `CONFIG.INI` in the current directory (checked first) or any of the search paths listed above.

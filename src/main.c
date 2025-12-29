@@ -736,10 +736,10 @@ int LoadUSBIRX(void)
 {
     int ID, RET;
 #ifndef HAS_EMBEDDED_IRX
-    char bdm_path[] = "mc?:/PS2BBL/BDM.IRX";
-    char bdmfs_fatfs_path[] = "mc?:/PS2BBL/BDMFS_FATFS.IRX";
-    char usbd_path[] = "mc?:/PS2BBL/USBD.IRX";
-    char usbmass_bd_path[] = "mc?:/PS2BBL/USBMASS_BD.IRX";
+    char bdm_path[] = "mc?:/SYS-CONF/BDM.IRX";
+    char bdmfs_fatfs_path[] = "mc?:/SYS-CONF/BDMFS_FATFS.IRX";
+    char usbd_path[] = "mc?:/SYS-CONF/USBD.IRX";
+    char usbmass_bd_path[] = "mc?:/SYS-CONF/USBMASS_BD.IRX";
 #endif
 
 // ------------------------------------------------------------------------------------ //
@@ -895,11 +895,11 @@ static int LoadHDDIRXExternal(void)
                                  "-n"
                                  "\0"
                                  "20";
-    char dev9_path[] = "mc?:/PS2BBL/PS2DEV9.IRX";
-    char poweroff_path[] = "mc?:/PS2BBL/POWEROFF.IRX";
-    char atad_path[] = "mc?:/PS2BBL/PS2ATAD.IRX";
-    char hdd_path[] = "mc?:/PS2BBL/PS2HDD.IRX";
-    char pfs_path[] = "mc?:/PS2BBL/PS2FS.IRX";
+    char dev9_path[] = "mc?:/SYS-CONF/PS2DEV9.IRX";
+    char poweroff_path[] = "mc?:/SYS-CONF/POWEROFF.IRX";
+    char atad_path[] = "mc?:/SYS-CONF/PS2ATAD.IRX";
+    char hdd_path[] = "mc?:/SYS-CONF/PS2HDD.IRX";
+    char pfs_path[] = "mc?:/SYS-CONF/PS2FS.IRX";
 
     ID = SifLoadStartModule(CheckPath(dev9_path), 0, NULL, &RET);
     DPRINTF("[DEV9 ext]: ret=%d, ID=%d\n", RET, ID);
