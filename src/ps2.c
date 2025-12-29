@@ -29,9 +29,9 @@ void BootError(void)
 #define CNF_PATH_LEN_MAX 64
 #define CNF_LEN_MAX      1024
 
-static const char *CNFGetToken(const unsigned char *cnf, const char *key)
+static const char *CNFGetToken(const char *cnf, const char *key)
 {
-    for (; isspace(*cnf); cnf++) {
+    for (; isspace((unsigned char)*cnf); cnf++) {
     }
 
     for (; *key != '\0'; key++, cnf++) {
@@ -65,7 +65,7 @@ static const char *CNFGetKey(const char *line, char *key)
     int i;
 
     // Skip leading whitespace
-    for (; isspace(*line); line++) {
+    for (; isspace((unsigned char)*line); line++) {
     }
 
     if (*line == '\0') { // Unexpected end of file
@@ -73,11 +73,11 @@ static const char *CNFGetKey(const char *line, char *key)
     }
 
     for (i = 0; i < CNF_PATH_LEN_MAX && *line != '\0'; i++) {
-        if (isgraph(*line)) {
+        if (isgraph((unsigned char)*line)) {
             *key = *line;
             line++;
             key++;
-        } else if (isspace(*line)) {
+        } else if (isspace((unsigned char)*line)) {
             *key = '\0';
             break;
         } else if (*line == '\0') { // Unexpected end of file. This check exists, along with the other similar check above.

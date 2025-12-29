@@ -91,14 +91,14 @@ const char *PS1DRVGetVersion(void)
     return ps1drv.ver;
 }
 
-static void CNFGetKey(unsigned char *cnf, char *line, const char *key)
+static void CNFGetKey(char *cnf, char *line, const char *key)
 {
     int len;
 
     if ((len = strlen(key)) != 0) {
         do {
-            if (strncmp(cnf, key, len) == 0) {           // Key located.
-                for (cnf += len; isspace(*cnf); cnf++) { // Eliminate leading whitespaces.
+            if (strncmp(cnf, key, len) == 0) {                               // Key located.
+                for (cnf += len; isspace((unsigned char)*cnf); cnf++) { // Eliminate leading whitespaces.
                     if (*cnf == '\n' || *cnf == '\0')
                         return;
                 }
@@ -107,7 +107,7 @@ static void CNFGetKey(unsigned char *cnf, char *line, const char *key)
                     const char *pKey;
                     ++cnf;
 
-                    for (; isspace(*cnf); cnf++) { // Eliminate whitespaces after the equals sign.
+                    for (; isspace((unsigned char)*cnf); cnf++) { // Eliminate whitespaces after the equals sign.
                         if (*cnf == '\n' || *cnf == '\0')
                             return;
                     }

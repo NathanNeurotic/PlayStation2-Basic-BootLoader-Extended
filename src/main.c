@@ -369,7 +369,7 @@ int main(int argc, char *argv[])
         cnf_size = ftell(fp);
         fseek(fp, 0, SEEK_SET);
         DPRINTF("Allocating %d bytes for config\n", cnf_size);
-        config_buf = (unsigned char *)malloc(cnf_size + 1);
+        config_buf = malloc(cnf_size + 1);
         if (config_buf != NULL) {
             CNFBUFF = config_buf;
             int temp;
@@ -736,10 +736,10 @@ int LoadUSBIRX(void)
 {
     int ID, RET;
 #ifndef HAS_EMBEDDED_IRX
-    char bdm_path[] = "mc?:/PS2BBL/BDM.IRX";
-    char bdmfs_fatfs_path[] = "mc?:/PS2BBL/BDMFS_FATFS.IRX";
-    char usbd_path[] = "mc?:/PS2BBL/USBD.IRX";
-    char usbmass_bd_path[] = "mc?:/PS2BBL/USBMASS_BD.IRX";
+    char bdm_path[] = "mc?:/SYS-CONF/BDM.IRX";
+    char bdmfs_fatfs_path[] = "mc?:/SYS-CONF/BDMFS_FATFS.IRX";
+    char usbd_path[] = "mc?:/SYS-CONF/USBD.IRX";
+    char usbmass_bd_path[] = "mc?:/SYS-CONF/USBMASS_BD.IRX";
 #endif
 
 // ------------------------------------------------------------------------------------ //
@@ -884,6 +884,7 @@ static int CheckHDD(void)
     return ret;
 }
 
+#ifdef HDD_RUNTIME
 static int LoadHDDIRXExternal(void)
 {
     int ID, RET, HDDSTAT;
@@ -894,11 +895,11 @@ static int LoadHDDIRXExternal(void)
                                  "-n"
                                  "\0"
                                  "20";
-    char dev9_path[] = "mc?:/PS2BBL/PS2DEV9.IRX";
-    char poweroff_path[] = "mc?:/PS2BBL/POWEROFF.IRX";
-    char atad_path[] = "mc?:/PS2BBL/PS2ATAD.IRX";
-    char hdd_path[] = "mc?:/PS2BBL/PS2HDD.IRX";
-    char pfs_path[] = "mc?:/PS2BBL/PS2FS.IRX";
+    char dev9_path[] = "mc?:/SYS-CONF/PS2DEV9.IRX";
+    char poweroff_path[] = "mc?:/SYS-CONF/POWEROFF.IRX";
+    char atad_path[] = "mc?:/SYS-CONF/PS2ATAD.IRX";
+    char hdd_path[] = "mc?:/SYS-CONF/PS2HDD.IRX";
+    char pfs_path[] = "mc?:/SYS-CONF/PS2FS.IRX";
 
     ID = SifLoadStartModule(CheckPath(dev9_path), 0, NULL, &RET);
     DPRINTF("[DEV9 ext]: ret=%d, ID=%d\n", RET, ID);
@@ -937,6 +938,7 @@ static int LoadHDDIRXExternal(void)
 
     return 0;
 }
+#endif
 
 int LoadHDDIRX(void)
 {
@@ -1237,7 +1239,8 @@ void ResetIOP(void)
 #ifdef PSX
 static void InitPSX()
 {
-    int result, STAT;
+    int result;
+    u32 STAT;
 
     SifInitRpc(0);
     sceCdInit(SCECdINoD);
