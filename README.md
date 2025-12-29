@@ -1,117 +1,259 @@
-
 <br />
 <p align="center">
   <a href="https://israpps.github.io/PlayStation2-Basic-BootLoader/">
-    <img width="1536" height="1024" alt="ChatGPT Image Dec 28, 2025, 07_29_41 PM" src="https://github.com/user-attachments/assets/e5c5fe17-6fe8-43bd-a581-105d3954f6f5"
- alt="Logo" width="100%" height="auto">
+    <img width="1536" height="1024" alt="PS2BBL Logo" src="https://github.com/user-attachments/assets/e5c5fe17-6fe8-43bd-a581-105d3954f6f5" />
   </a>
+</p>
 
-  <p align="center">
-    A flexible BootLoader for PlayStation 2™ and PSX-DESR
-    <br />
-  </p>
-</p>  
+<p align="center">
+  A flexible BootLoader for PlayStation 2™ and PSX-DESR
+</p>
 
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/4ea4628e3d444807bf5df8430a327c5b)](https://www.codacy.com/gh/israpps/PlayStation2-Basic-BootLoader/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=israpps/PlayStation2-Basic-BootLoader&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/4ea4628e3d444807bf5df8430a327c5b)](https://www.codacy.com/gh/israpps/PlayStation2-Basic-BootLoader/dashboard)
 [![CI](https://github.com/israpps/PlayStation2-Basic-BootLoader/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/israpps/PlayStation2-Basic-BootLoader/actions/workflows/CI.yml)
 ![GitHub all releases](https://img.shields.io/github/downloads/israpps/PlayStation2-Basic-BootLoader/total?logo=GitHub&logoColor=white)
 
+---
 
+## Overview
 
-A simple PS2 (and PSX-DESR) bootloader that handles system init and ELF programs execution (amongst other things)
+PS2BBL is a lightweight yet powerful bootloader for **PlayStation 2™** and **PSX-DESR** systems.  
+It performs early system initialization and launches ELF executables from multiple storage backends, supporting both **embedded** and **runtime-loaded** drivers.
+
+The boot process is deterministic, with a clearly defined configuration search order and strict separation between **boot-time** and **runtime-enabled** devices.
+
+---
 
 ## Documentation
 
-It is hosted on [github pages](https://israpps.github.io/PlayStation2-Basic-BootLoader/)
+Full documentation is available on GitHub Pages:  
+👉 https://israpps.github.io/PlayStation2-Basic-BootLoader/
 
-## Configuration paths and options
+---
 
-**Config search order (activated sources only — earliest wins):**
+## Configuration Model (Read This First)
 
-1. `CONFIG.INI` in the current directory (relative)
-2. `mc1:/SYS-CONF/PS2BBL.INI`
-3. `mc0:/SYS-CONF/PS2BBL.INI`
-4. `mc?:/SYS-CONF/PSXBBL.INI` (PSX builds)
-5. `mmce1:/PS2BBL/PS2BBL.INI` then `mmce0:/PS2BBL/PS2BBL.INI` (once the MMCE driver is running)
-6. `xfrom:/PS2BBL/CONFIG.INI` (after XFROM is enabled at runtime)
-7. `hdd0:__sysconf:pfs:/PS2BBL/CONFIG.INI` (after the HDD stack finishes init)
-8. `massX:/PS2BBL/CONFIG.INI` (once MX4SIO is enabled)
-9. `mass:/PS2BBL/CONFIG.INI`
+PS2BBL reads **one primary configuration file per boot**.
 
-If no config is found, built-in defaults are used:
+Some storage devices (HDD, MX4SIO, MMCE, XFROM) may not exist at boot time and can only be enabled *after* the initial configuration is parsed.  
+These devices **cannot provide the CONFIG.INI used for the same boot pass**.
 
-- `AUTO`: `mc?:/BOOT/BOOT.ELF`, `mc?:/BOOT/BOOT2.ELF`, `mass:/RESCUE.ELF`
-- `SELECT`: `mass:/PS2BBL/L2[1].ELF`, `mass:/PS2BBL/L2[2].ELF`, `mass:/PS2BBL/L2[3].ELF`
-- `L3`: `mass:/PS2BBL/R2[1].ELF`, `mass:/PS2BBL/R2[2].ELF`, `mass:/PS2BBL/R2[3].ELF`
-- `R3`: `mc?:/OPL/OPNPS2LD.ELF`, `mc?:/APPS/OPNPS2LD/ELF`, `mass:/PS2BBL/OPNPS2LD.ELF`
-- `START`: `mass:/RESCUE.ELF`, `mc?:/BOOT/BOOT2.ELF`, `mc?:/APPS/ULE.ELF`
+Configuration sources therefore fall into two categories:
 
-**Runtime options of note (keys inside the INI):**
-- `HDD_ENABLE=1` (requires `HDD_RUNTIME=1` build): brings up the external HDD stack (DEV9 → POWEROFF → ATAD → HDD → PFS) and only then enables the `hdd0:__sysconf:pfs:/PS2BBL/CONFIG.INI` search slot.
-- `MX4SIO_ENABLE=1` (requires `MX4SIO` or `MX4SIO_RUNTIME` build): loads `mx4sio_bd.irx` via the IRX locator (MC paths below), initializes the driver, and then enables `massX:/PS2BBL/CONFIG.INI`.
-- `MMCE_ENABLE=1` (requires `MMCE` or `MMCE_RUNTIME` build): loads `mmceman.irx`, initializes the memory card extender, and then enables `mmce1:/PS2BBL/PS2BBL.INI` followed by `mmce0:/PS2BBL/PS2BBL.INI`.
-- `XFROM_ENABLE=1` (requires `XFROM` or `XFROM_RUNTIME` build): loads `xfromman.irx`, initializes the device, and then enables `xfrom:/PS2BBL/CONFIG.INI`.
-- `LOAD_IRX_E#=<path>`: load an extra IRX at config-parse time (e.g., `LOAD_IRX_E1=mc0:/SYS-CONF/PS2BBL/FSCK.IRX`). This **does not** add devices to the config search order; use the device `*_ENABLE` keys above for runtime device activation.
-- `LK_<BUTTON>_E#=<path>`: bind launch paths to controller buttons (AUTO/SELECT/L3/.../SQUARE).
-- `SKIP_PS2LOGO`, `KEY_READ_WAIT_TIME`, `EJECT_TRAY`, `LOGO_DISPLAY`: standard boot behavior knobs (logo skip, input timeout, tray control, logo verbosity).
+1. **Always-available sources** (checked immediately)
+2. **Conditionally-available sources** (checked only after device initialization)
 
-`*_ENABLE` keys only bring their devices online **after** the initial config parse is done. They cannot be used to read the current boot’s `CONFIG.INI` from those newly enabled devices. If you need runtime overrides from those sources, chain-load a secondary config (e.g., via a launch entry that re-enters PS2BBL) or perform a second config pass after the device is up.
+The search order below reflects this behavior explicitly.
 
-**Build-time flags (Makefile) relevant to storage and runtime devices:**
-- `HDD=1`: embed HDD modules (POWEROFF/ATAD/HDD/PFS) and enable HDD by default.
-- `HDD_RUNTIME=1`: allow runtime HDD enablement from external IRX on MC (pair with `HDD_ENABLE=1` in the INI to actually activate).
-- `MX4SIO=1`, `MMCE=1`, `XFROM=1`: embed the respective drivers and enable their config search slots immediately after boot.
-- `MX4SIO_RUNTIME=1`, `MMCE_RUNTIME=1`, `XFROM_RUNTIME=1`: allow runtime bring-up of the corresponding drivers from external IRX without embedding them; activation is controlled by the matching `*_ENABLE=1` INI keys.
-- `HAS_EMBED_IRX=1`: embed USB/BDM IRXs; otherwise they are loaded externally from memory card.
+---
 
-### External IRX lookup
+## Configuration File Search Order  
+**(Activated sources only — first match wins)**
 
-Runtime-loaded IRX modules (HDD/MX4SIO/MMCE/XFROM and other optional drivers) use a common locator that searches memory cards in this order: `mc0:/SYS-CONF/PS2BBL/<IRX>`, `mc1:/SYS-CONF/PS2BBL/<IRX>`, then `mc?:/SYS-CONF/<IRX>`. The USB/BDM stack still loads from `mc?:/SYS-CONF/<IRX>` when not embedded.
+### Phase 1 — Always available
 
-IRX filenames used by this project:
+1. `CONFIG.INI` in the current working directory  
+2. `mc1:/SYS-CONF/PS2BBL.INI`  
+3. `mc0:/SYS-CONF/PS2BBL.INI`  
+4. `mc?:/SYS-CONF/PSXBBL.INI` *(PSX builds only)*  
 
-- Core input/memory card: `sio2man.irx`, `mcman.irx`, `mcserv.irx`, `padman.irx` (ROM or embedded depending on build).
-- File I/O: `iomanX.irx`, `fileXio.irx`.
-- USB/BDM stack (external when not embedded): `BDM.IRX`, `BDMFS_FATFS.IRX`, `USBD.IRX`, `USBMASS_BD.IRX`.
-- HDD runtime stack: `PS2DEV9.IRX`, `POWEROFF.IRX`, `PS2ATAD.IRX`, `PS2HDD.IRX`, `PS2FS.IRX`.
-- Optional runtime devices: `mx4sio_bd.irx`, `mmceman.irx`, `xfromman.irx`.
-- Networking/debug (when enabled at build time): `netman.irx`, `smap.irx`, `ps2ip-nm.irx`, `udptty.irx`, `ppctty.irx`.
+### Phase 2 — Conditionally available
 
-**Example CONFIG.INI (runtime devices + extra IRX):**
+5. `mmce1:/PS2BBL/PS2BBL.INI`  
+6. `mmce0:/PS2BBL/PS2BBL.INI`  
+   *(after MMCE driver initialization)*  
+
+7. `xfrom:/PS2BBL/CONFIG.INI`  
+   *(after XFROM is enabled)*  
+
+8. `hdd0:__sysconf:pfs:/PS2BBL/CONFIG.INI`  
+   *(after HDD stack initialization)*  
+
+9. `massX:/PS2BBL/CONFIG.INI`  
+   *(after MX4SIO initialization)*  
+
+10. `mass:/PS2BBL/CONFIG.INI`
+
+---
+
+## Built-In Defaults (No Config Found)
+
+If no configuration file is located, PS2BBL uses internal defaults.
+
+### Button → Launch Mapping
+
+**AUTO**
+- `mc?:/BOOT/BOOT.ELF`
+- `mc?:/BOOT/BOOT2.ELF`
+- `mass:/RESCUE.ELF`
+
+**SELECT**
+- `mass:/PS2BBL/L2[1].ELF`
+- `mass:/PS2BBL/L2[2].ELF`
+- `mass:/PS2BBL/L2[3].ELF`
+
+**L3**
+- `mass:/PS2BBL/R2[1].ELF`
+- `mass:/PS2BBL/R2[2].ELF`
+- `mass:/PS2BBL/R2[3].ELF`
+
+**R3**
+- `mc?:/OPL/OPNPS2LD.ELF`
+- `mc?:/APPS/OPNPS2LD/ELF`
+- `mass:/PS2BBL/OPNPS2LD.ELF`
+
+**START**
+- `mass:/RESCUE.ELF`
+- `mc?:/BOOT/BOOT2.ELF`
+- `mc?:/APPS/ULE.ELF`
+
+---
+
+## Runtime Configuration Keys
+
+These keys are parsed **only from the primary CONFIG.INI**.
+
+They activate devices *after* configuration parsing has completed.
+
+### Runtime Device Enablement
+
+- `HDD_ENABLE=1`  
+  Enables the HDD stack after boot  
+  *(requires `HDD_RUNTIME=1` build)*
+
+- `MX4SIO_ENABLE=1`  
+  Loads `mx4sio_bd.irx` and enables `massX:`  
+  *(requires `MX4SIO` or `MX4SIO_RUNTIME`)*
+
+- `MMCE_ENABLE=1`  
+  Loads `mmceman.irx` and enables `mmce0:/mmce1:`  
+  *(requires `MMCE` or `MMCE_RUNTIME`)*
+
+- `XFROM_ENABLE=1`  
+  Loads `xfromman.irx` and enables `xfrom:`  
+  *(requires `XFROM` or `XFROM_RUNTIME`)*
+
+> ⚠️ These devices **cannot supply the current boot’s CONFIG.INI**.  
+> To use configuration files from them, chain-load PS2BBL again or perform a second config pass.
+
+---
+
+### Extra IRX Loading
+
+- `LOAD_IRX_E#=<path>`  
+  Loads additional IRX modules during config parsing.
+
+This does **not** add new configuration search paths.
+
+---
+
+### Button Bindings
+
+- `LK_<BUTTON>_E#=<path>`
+
+Example:
 ```
+
+LK_AUTO_E1=mc0:/BOOT/BOOT.ELF
+LK_START_E1=mass:/RESCUE.ELF
+
+```
+
+---
+
+### Boot Behavior Options
+
+- `SKIP_PS2LOGO`
+- `KEY_READ_WAIT_TIME`
+- `EJECT_TRAY`
+- `LOGO_DISPLAY`
+
+---
+
+## Build-Time Driver Flags (Makefile)
+
+### Embedded (Available Immediately)
+
+- `HDD=1`
+- `MX4SIO=1`
+- `MMCE=1`
+- `XFROM=1`
+
+### Runtime-Loaded (From Memory Card)
+
+- `HDD_RUNTIME=1`
+- `MX4SIO_RUNTIME=1`
+- `MMCE_RUNTIME=1`
+- `XFROM_RUNTIME=1`
+
+These require the matching `*_ENABLE=1` INI key.
+
+---
+
+### IRX Embedding Control
+
+- `HAS_EMBED_IRX=1`  
+  Embeds USB / BDM IRXs directly into PS2BBL  
+  Otherwise they are loaded externally from memory card
+
+---
+
+## External IRX Lookup Order
+
+Runtime-loaded IRX modules are searched in this order:
+
+1. `mc0:/SYS-CONF/PS2BBL/<IRX>`
+2. `mc1:/SYS-CONF/PS2BBL/<IRX>`
+3. `mc?:/SYS-CONF/<IRX>`
+
+---
+
+## Example CONFIG.INI
+
+```
+
 HDD_ENABLE=1
 MX4SIO_ENABLE=1
 MMCE_ENABLE=1
 XFROM_ENABLE=1
-LOAD_IRX_E1=mc0:/SYS-CONF/PS2BBL/FSCK.IRX    ; arbitrary extra module
 
-; Button bindings
+LOAD_IRX_E1=mc0:/SYS-CONF/PS2BBL/FSCK.IRX
+
 LK_AUTO_E1=mc0:/BOOT/BOOT.ELF
 LK_AUTO_E2=mc0:/BOOT/BOOT2.ELF
 LK_AUTO_E3=mass:/RESCUE.ELF
-LK_START_E1=mass:/RESCUE.ELF
 
-; Optional delay and UI tweaks
 KEY_READ_WAIT_TIME=5000
 LOGO_DISPLAY=2
+
 ```
-For runtime driver lines above, place `mx4sio_bd.irx`, `mmceman.irx`, `xfromman.irx`, and the HDD stack IRX files inside `mc0:/SYS-CONF/PS2BBL/` (or the fallback MC paths listed under External IRX lookup).
 
-## Known bugs/issues
+Required IRX files must exist under:
+`mc0:/SYS-CONF/PS2BBL/` (or fallback memory-card paths).
 
-you tell me ;)
+---
+
+## Known Issues
+
+If you find one — please report it 🙂
+
+---
 
 ## Credits
 
-- thanks to @SP193 for the OSD initialization libraries, wich serve as the foundation for this project
-- thanks asmblur, for encouraging me to make this monster on latest sdk
-- thanks to @uyjulian and @fjtrujy for always helping me
-- thanks to @israpps (El_isra) for creating and maintaining PS2BBL
-- thanks to @pcm720 for contributions and reviews
+- @SP193 — OSD initialization libraries  
+- asmblur — SDK support and encouragement  
+- @uyjulian, @fjtrujy — continuous assistance  
+- @israpps (El_isra) — original PS2BBL creator  
+- @pcm720 — reviews and contributions  
 
-## Build & usage notes
+---
 
-- Build requirements: ps2sdk toolchain installed and in `PATH`.
-- Typical build: `make` (add `HDD=1` for embedded HDD stack, or `HDD_RUNTIME=1`/`MX4SIO_RUNTIME=1`/`MMCE_RUNTIME=1`/`XFROM_RUNTIME=1` to enable runtime drivers loaded from memory card).
-- Release packaging: `./mk_kelf.sh` will produce KELF variants; external IRX for runtime HDD or USB must reside in `mc?:/SYS-CONF/`.
-- Config file: place `CONFIG.INI` in the current directory (checked first) or any of the search paths listed above.
+## Build & Usage Notes
+
+- Requires a working **ps2sdk** toolchain in `PATH`
+- Typical build:  
+  `make`  
+  *(add `HDD=1` or `*_RUNTIME=1` flags as needed)*
+- `mk_kelf.sh` generates KELF variants
+- External IRX must reside in `mc?:/SYS-CONF/` when not embedded
