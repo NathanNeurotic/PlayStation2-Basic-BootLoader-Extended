@@ -202,8 +202,8 @@ These require the matching `*_ENABLE=1` INI key.
 
 Runtime-loaded IRX modules are searched in this order:
 
-1. `mc0:/SYS-CONF/PS2BBL/<IRX>`
-2. `mc1:/SYS-CONF/PS2BBL/<IRX>`
+1. `mc0:/SYS-CONF/<IRX>`
+2. `mc1:/SYS-CONF/<IRX>`
 3. `mc?:/SYS-CONF/<IRX>`
 
 ---
@@ -217,7 +217,7 @@ MX4SIO_ENABLE=1
 MMCE_ENABLE=1
 XFROM_ENABLE=1
 
-LOAD_IRX_E1=mc0:/SYS-CONF/PS2BBL/FSCK.IRX
+LOAD_IRX_E1=mc0:/SYS-CONF/FSCK.IRX
 
 LK_AUTO_E1=mc0:/BOOT/BOOT.ELF
 LK_AUTO_E2=mc0:/BOOT/BOOT2.ELF
@@ -229,7 +229,66 @@ LOGO_DISPLAY=2
 ```
 
 Required IRX files must exist under:
-`mc0:/SYS-CONF/PS2BBL/` (or fallback memory-card paths).
+`mc0:/SYS-CONF/` (or fallback memory-card paths).
+
+---
+
+## Additional CONFIG.INI Examples
+
+### Memory-card-only boot (no runtime devices)
+
+```
+; Keep the boot fast and deterministic
+HDD_ENABLE=0
+MX4SIO_ENABLE=0
+MMCE_ENABLE=0
+XFROM_ENABLE=0
+
+; Simple key bindings
+LK_AUTO_E1=mc0:/BOOT/BOOT.ELF
+LK_START_E1=mc0:/APPS/ULE.ELF
+
+; Skip branding to reduce boot time
+SKIP_PS2LOGO=1
+```
+
+### HDD runtime with embedded USB/BDM IRX
+
+```
+; Enable HDD after config parsing
+HDD_ENABLE=1
+
+; Expect additional drivers to be loaded from memory card
+LOAD_IRX_E1=mc0:/SYS-CONF/ATAD.IRX
+LOAD_IRX_E2=mc0:/SYS-CONF/DEV9.IRX
+
+; Primary launcher lives on HDD
+LK_AUTO_E1=hdd0:__sysconf:pfs:/PS2BBL/BOOT.ELF
+
+; Fallback to memory card if HDD is missing
+LK_AUTO_E2=mc0:/BOOT/BOOT.ELF
+
+; Show logo but reduce wait
+KEY_READ_WAIT_TIME=2000
+LOGO_DISPLAY=1
+```
+
+### MX4SIO mass-storage first, memory card rescue second
+
+```
+MX4SIO_ENABLE=1
+
+; Preferred launchers on MX4SIO
+LK_AUTO_E1=massX:/PS2BBL/LOADER.ELF
+LK_AUTO_E2=massX:/RESCUE.ELF
+
+; Rescue path if MX4SIO is absent or fails
+LK_AUTO_E3=mc0:/BOOT/BOOT2.ELF
+
+; Keep tray closed and use a longer key-read window
+EJECT_TRAY=0
+KEY_READ_WAIT_TIME=8000
+```
 
 ---
 
