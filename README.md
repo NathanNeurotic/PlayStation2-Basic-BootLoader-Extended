@@ -59,3 +59,12 @@ you tell me ;)
 - thanks to @SP193 for the OSD initialization libraries, wich serve as the foundation for this project
 - thanks asmblur, for encouraging me to make this monster on latest sdk
 - thanks to @uyjulian and @fjtrujy for always helping me
+- thanks to @israpps (El_isra) for creating and maintaining PS2BBL
+- thanks to @pcm720 for contributions and reviews
+
+## Build & usage notes
+
+- Build requirements: ps2sdk toolchain installed and in `PATH`.
+- Typical build: `make` (add `HDD=1` for embedded HDD stack, or `HDD_RUNTIME=1` to enable runtime HDD with external IRX on MC).
+- Release packaging: `./mk_kelf.sh` will produce KELF variants; external IRX for runtime HDD or USB must reside in `mc?:/PS2BBL/`.
+- Config file: place `CONFIG.INI` in the current directory (checked first) or any of the search paths listed above.
