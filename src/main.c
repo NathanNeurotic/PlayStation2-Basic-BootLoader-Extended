@@ -11,6 +11,48 @@ typedef struct
 } CONFIG;
 CONFIG GLOBCFG;
 
+const char *CONFIG_PATHS[SOURCE_COUNT] = {
+    "mc0:/SYS-CONF/PS2BBL.INI",
+    "mc1:/SYS-CONF/PS2BBL.INI",
+    "mass:/PS2BBL/CONFIG.INI",
+#ifdef MX4SIO
+    "massX:/PS2BBL/CONFIG.INI",
+#endif
+#ifdef HDD
+    "hdd0:__sysconf:pfs:/PS2BBL/CONFIG.INI",
+#endif
+#ifdef XFROM
+    "xfrom:/PS2BBL/CONFIG.INI",
+#endif
+#ifdef MMCE
+    "mmce0:/PS2BBL/PS2BBL.INI",
+    "mmce1:/PS2BBL/PS2BBL.INI",
+#endif
+#ifdef PSX
+    "mc?:/SYS-CONF/PSXBBL.INI",
+#endif
+    "CONFIG.INI",
+    "",
+};
+
+const char *DEFPATH[] = {
+    "mc?:/BOOT/ULE.ELF", // AUTO [0]
+    "mc?:/APPS/ULE/ELF",
+    "mass:/BOOT/BOOT.ELF",
+    "mass:/PS2BBL/L2[1].ELF", // L2 [3]
+    "mass:/PS2BBL/L2[2].ELF",
+    "mass:/PS2BBL/L2[3].ELF",
+    "mass:/PS2BBL/R2[1].ELF", // R2 [6]
+    "mass:/PS2BBL/R2[2].ELF",
+    "mass:/PS2BBL/R2[3].ELF",
+    "mc?:/OPL/OPNPS2LD.ELF", // L1 [9]
+    "mc?:/APPS/OPNPS2LD/ELF",
+    "mass:/PS2BBL/OPNPS2LD.ELF",
+    "mass:/RESCUE.ELF", // R1 [12]
+    "mc?:/BOOT/BOOT2.ELF",
+    "mc?:/APPS/ULE.ELF",
+};
+
 char *EXECPATHS[3];
 u8 ROMVER[16];
 int PAD = 0;
@@ -257,8 +299,18 @@ int main(int argc, char *argv[])
     SetDefaultSettings();
     FILE *fp;
     for (x = SOURCE_CWD; x >= SOURCE_MC0; x--) {
-        char *T = CheckPath(CONFIG_PATHS[x]);
+        char *config_path = strdup(CONFIG_PATHS[x]);
+        if (config_path == NULL) {
+            DPRINTF("Failed to duplicate config path for source %d\n", x);
+            continue;
+        }
+        char *T = CheckPath(config_path);
+        if (T == NULL) {
+            free(config_path);
+            continue;
+        }
         fp = fopen(T, "r");
+        free(config_path);
         if (fp != NULL) {
             config_source = x;
             break;
@@ -290,8 +342,15 @@ int main(int argc, char *argv[])
                         continue;
                     }
                     if (!strncmp("LOAD_IRX_E", name, 10)) {
-                        j = SifLoadStartModule(CheckPath(value), 0, NULL, &x);
-                        DPRINTF("# Loaded IRX from config entry [%s] -> [%s]: ID=%d, ret=%d\n", name, value, j, x);
+                        char *path_copy = strdup(value);
+                        if (path_copy == NULL) {
+                            DPRINTF("Failed to duplicate path for %s\n", name);
+                            continue;
+                        }
+                        char *resolved_path = CheckPath(path_copy);
+                        j = SifLoadStartModule(resolved_path, 0, NULL, &x);
+                        DPRINTF("# Loaded IRX from config entry [%s] -> [%s]: ID=%d, ret=%d\n", name, resolved_path, j, x);
+                        free(path_copy);
                         continue;
                     }
                     if (!strcmp("SKIP_PS2LOGO", name)) {
@@ -507,6 +566,13 @@ void runKELF(const char *kelfpath)
 
 char *CheckPath(char *path)
 {
+    size_t path_len;
+
+    if (path == NULL)
+        return NULL;
+
+    path_len = strlen(path);
+
     if (path[0] == '$') // we found a program command
     {
         if (!strcmp("$CDVD", path))
@@ -527,7 +593,7 @@ char *CheckPath(char *path)
             runKELF(CheckPath(path + strlen("$RUNKELF:"))); // pass to runKELF the path without the command token, digested again by CheckPath()
         }
     }
-    if (!strncmp("mc?", path, 3)) {
+    if ((path_len >= 3) && !strncmp("mc?", path, 3)) {
         path[2] = (config_source == SOURCE_MC1) ? '1' : '0';
         if (exist(path)) {
             return path;
@@ -537,7 +603,7 @@ char *CheckPath(char *path)
                 return path;
         }
 #ifdef MMCE
-    } else if (!strncmp("mmce?", path, 5)) {
+    } else if ((path_len >= 5) && !strncmp("mmce?", path, 5)) {
         path[4] = (config_source == SOURCE_MMCE1) ? '1' : '0';
         if (exist(path)) {
             return path;
@@ -560,7 +626,7 @@ char *CheckPath(char *path)
             return strstr(path, "pfs:");
 #endif
 #ifdef MX4SIO
-    } else if (!strncmp("massX:", path, 6)) {
+    } else if ((path_len >= 6) && !strncmp("massX:", path, 6)) {
         int x = LookForBDMDevice();
         if (x >= 0)
             path[4] = '0' + x;
@@ -591,12 +657,16 @@ void SetDefaultSettings(void)
 int LoadUSBIRX(void)
 {
     int ID, RET;
+    char bdm_path[] = "mc?:/PS2BBL/BDM.IRX";
+    char bdmfs_fatfs_path[] = "mc?:/PS2BBL/BDMFS_FATFS.IRX";
+    char usbd_path[] = "mc?:/PS2BBL/USBD.IRX";
+    char usbmass_bd_path[] = "mc?:/PS2BBL/USBMASS_BD.IRX";
 
 // ------------------------------------------------------------------------------------ //
 #ifdef HAS_EMBEDDED_IRX
     ID = SifExecModuleBuffer(bdm_irx, size_bdm_irx, 0, NULL, &RET);
 #else
-    ID = SifLoadStartModule(CheckPath("mc?:/PS2BBL/BDM.IRX"), 0, NULL, &RET);
+    ID = SifLoadStartModule(CheckPath(bdm_path), 0, NULL, &RET);
 #endif
     DPRINTF(" [BDM]: ret=%d, ID=%d\n", RET, ID);
     if (ID < 0 || RET == 1)
@@ -605,7 +675,7 @@ int LoadUSBIRX(void)
 #ifdef HAS_EMBEDDED_IRX
     ID = SifExecModuleBuffer(bdmfs_fatfs_irx, size_bdmfs_fatfs_irx, 0, NULL, &RET);
 #else
-    ID = SifLoadStartModule(CheckPath("mc?:/PS2BBL/BDMFS_FATFS.IRX"), 0, NULL, &RET);
+    ID = SifLoadStartModule(CheckPath(bdmfs_fatfs_path), 0, NULL, &RET);
 #endif
     DPRINTF(" [BDMFS_FATFS]: ret=%d, ID=%d\n", RET, ID);
     if (ID < 0 || RET == 1)
@@ -614,7 +684,7 @@ int LoadUSBIRX(void)
 #ifdef HAS_EMBEDDED_IRX
     ID = SifExecModuleBuffer(usbd_irx, size_usbd_irx, 0, NULL, &RET);
 #else
-    ID = SifLoadStartModule(CheckPath("mc?:/PS2BBL/USBD.IRX"), 0, NULL, &RET);
+    ID = SifLoadStartModule(CheckPath(usbd_path), 0, NULL, &RET);
 #endif
     delay(3);
     DPRINTF(" [USBD]: ret=%d, ID=%d\n", RET, ID);
@@ -624,7 +694,7 @@ int LoadUSBIRX(void)
 #ifdef HAS_EMBEDDED_IRX
     ID = SifExecModuleBuffer(usbmass_bd_irx, size_usbmass_bd_irx, 0, NULL, &RET);
 #else
-    ID = SifLoadStartModule(CheckPath("mc?:/PS2BBL/USBMASS_BD.IRX"), 0, NULL, &RET);
+    ID = SifLoadStartModule(CheckPath(usbmass_bd_path), 0, NULL, &RET);
 #endif
     DPRINTF(" [USBMASS_BD]: ret=%d, ID=%d\n", RET, ID);
     if (ID < 0 || RET == 1)

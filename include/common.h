@@ -26,29 +26,7 @@ enum
     SOURCE_COUNT,
 } CONFIG_SOURCES_ID;
 
-char *CONFIG_PATHS[SOURCE_COUNT] = {
-    "mc0:/SYS-CONF/PS2BBL.INI",
-    "mc1:/SYS-CONF/PS2BBL.INI",
-    "mass:/PS2BBL/CONFIG.INI",
-#ifdef MX4SIO
-    "massX:/PS2BBL/CONFIG.INI",
-#endif
-#ifdef HDD
-    "hdd0:__sysconf:pfs:/PS2BBL/CONFIG.INI",
-#endif
-#ifdef XFROM
-    "xfrom:/PS2BBL/CONFIG.INI",
-#endif
-#ifdef MMCE
-    "mmce0:/PS2BBL/PS2BBL.INI",
-    "mmce1:/PS2BBL/PS2BBL.INI",
-#endif
-#ifdef PSX
-    "mc?:/SYS-CONF/PSXBBL.INI",
-#endif
-    "CONFIG.INI",
-    "",
-};
+extern const char *CONFIG_PATHS[SOURCE_COUNT];
 
 static const char *SOURCES[SOURCE_COUNT] = {
     "mc0",
@@ -124,23 +102,7 @@ const char *KEYS_ID[17] = {
 };
 
 /** default paths used if config file can't be loaded */
-char *DEFPATH[] = {
-    "mc?:/BOOT/ULE.ELF", // AUTO [0]
-    "mc?:/APPS/ULE/ELF",
-    "mass:/BOOT/BOOT.ELF",
-    "mass:/PS2BBL/L2[1].ELF", // L2 [3]
-    "mass:/PS2BBL/L2[2].ELF",
-    "mass:/PS2BBL/L2[3].ELF",
-    "mass:/PS2BBL/R2[1].ELF", // R2 [6]
-    "mass:/PS2BBL/R2[2].ELF",
-    "mass:/PS2BBL/R2[3].ELF",
-    "mc?:/OPL/OPNPS2LD.ELF", // L1 [9]
-    "mc?:/APPS/OPNPS2LD/ELF",
-    "mass:/PS2BBL/OPNPS2LD.ELF",
-    "mass:/RESCUE.ELF", // R1 [12]
-    "mc?:/BOOT/BOOT2.ELF",
-    "mc?:/APPS/ULE.ELF",
-};
+extern const char *DEFPATH[];
 
 #ifndef COMMIT_HASH
 #define COMMIT_HASH "UNKNOWn"
