@@ -55,6 +55,8 @@ If no config is found, built-in defaults are used:
 - `LK_<BUTTON>_E#=<path>`: bind launch paths to controller buttons (AUTO/SELECT/L3/.../SQUARE).
 - `SKIP_PS2LOGO`, `KEY_READ_WAIT_TIME`, `EJECT_TRAY`, `LOGO_DISPLAY`: standard boot behavior knobs (logo skip, input timeout, tray control, logo verbosity).
 
+`*_ENABLE` keys only bring their devices online **after** the initial config parse is done. They cannot be used to read the current boot’s `CONFIG.INI` from those newly enabled devices. If you need runtime overrides from those sources, chain-load a secondary config (e.g., via a launch entry that re-enters PS2BBL) or perform a second config pass after the device is up.
+
 **Build-time flags (Makefile) relevant to storage and runtime devices:**
 - `HDD=1`: embed HDD modules (POWEROFF/ATAD/HDD/PFS) and enable HDD by default.
 - `HDD_RUNTIME=1`: allow runtime HDD enablement from external IRX on MC (pair with `HDD_ENABLE=1` in the INI to actually activate).
