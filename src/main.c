@@ -83,6 +83,28 @@ static void ResetKeypathStorage(void)
     }
 }
 
+static char keypath_fallback_store[17][3][128];
+
+static int StoreKeypathFallback(int key_index, int path_index, const char *value)
+{
+    size_t len;
+
+    if (value == NULL)
+        return -1;
+
+    len = strlen(value);
+    if (len >= sizeof(keypath_fallback_store[0][0])) {
+        DPRINTF("Failed to store fallback keypath[%d][%d]: length %u exceeds %zu\n", key_index, path_index, (unsigned)len, sizeof(keypath_fallback_store[0][0]) - 1);
+        return -1;
+    }
+
+    strcpy(keypath_fallback_store[key_index][path_index], value);
+    keypath_store[key_index][path_index] = keypath_fallback_store[key_index][path_index];
+    keypath_allocated[key_index][path_index] = 0;
+    GLOBCFG.KEYPATHS[key_index][path_index] = keypath_store[key_index][path_index];
+    return 0;
+}
+
 static int StoreKeypathCopy(int key_index, int path_index, const char *value)
 {
     char *copy;
@@ -436,10 +458,10 @@ int main(int argc, char *argv[])
         for (x = 0; x < 5; x++)
             for (j = 0; j < 3; j++) {
                 if (StoreKeypathCopy(x, j, DEFPATH[3 * x + j]) != 0) {
-                    DPRINTF("Failed to duplicate default path LK_%s_E%d\n", KEYS_ID[x], j + 1);
-                    GLOBCFG.KEYPATHS[x][j] = DEFPATH[3 * x + j];
-                    keypath_store[x][j] = GLOBCFG.KEYPATHS[x][j];
-                    keypath_allocated[x][j] = 0;
+                    DPRINTF("Failed to duplicate default path LK_%s_E%d, using fallback buffer\n", KEYS_ID[x], j + 1);
+                    if (StoreKeypathFallback(x, j, DEFPATH[3 * x + j]) != 0) {
+                        DPRINTF("Fallback store also failed for LK_%s_E%d\n", KEYS_ID[x], j + 1);
+                    }
                 }
             }
         sleep(1);
@@ -666,9 +688,9 @@ void SetDefaultSettings(void)
     for (i = 0; i < 17; i++)
         for (j = 0; j < 3; j++) {
             if (StoreKeypathCopy(i, j, "isra:/") != 0) {
-                GLOBCFG.KEYPATHS[i][j] = "isra:/";
-                keypath_store[i][j] = GLOBCFG.KEYPATHS[i][j];
-                keypath_allocated[i][j] = 0;
+                if (StoreKeypathFallback(i, j, "isra:/") != 0) {
+                    DPRINTF("Failed to install fallback default keypath for [%d][%d]\n", i, j);
+                }
             }
         }
     GLOBCFG.SKIPLOGO = 0;
