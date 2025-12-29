@@ -369,7 +369,7 @@ int main(int argc, char *argv[])
         cnf_size = ftell(fp);
         fseek(fp, 0, SEEK_SET);
         DPRINTF("Allocating %d bytes for config\n", cnf_size);
-        config_buf = (unsigned char *)malloc(cnf_size + 1);
+        config_buf = malloc(cnf_size + 1);
         if (config_buf != NULL) {
             CNFBUFF = config_buf;
             int temp;
@@ -884,6 +884,7 @@ static int CheckHDD(void)
     return ret;
 }
 
+#ifdef HDD_RUNTIME
 static int LoadHDDIRXExternal(void)
 {
     int ID, RET, HDDSTAT;
@@ -937,6 +938,7 @@ static int LoadHDDIRXExternal(void)
 
     return 0;
 }
+#endif
 
 int LoadHDDIRX(void)
 {
@@ -1237,7 +1239,8 @@ void ResetIOP(void)
 #ifdef PSX
 static void InitPSX()
 {
-    int result, STAT;
+    int result;
+    u32 STAT;
 
     SifInitRpc(0);
     sceCdInit(SCECdINoD);
