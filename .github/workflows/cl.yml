@@ -1,0 +1,65 @@
+name: cl
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  enumerate:
+    runs-on: ubuntu-latest
+    container: ps2dev/ps2dev:latest
+    outputs:
+      matrix: ${{ steps.variants.outputs.matrix }}
+    steps:
+      - name: Install dependencies
+        run: apk add --no-cache build-base git p7zip
+
+      - uses: actions/checkout@v4
+      - name: Configure git
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --prune --unshallow || true
+
+      - name: Enumerate variants
+        id: variants
+        run: |
+          matrix=$(make list-variants)
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: enumerate
+    runs-on: ubuntu-latest
+    container: ps2dev/ps2dev:latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.enumerate.outputs.matrix) }}
+    steps:
+      - name: Install dependencies
+        run: apk add --no-cache build-base git p7zip
+
+      - uses: actions/checkout@v4
+      - name: Configure git
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --prune --unshallow || true
+
+      - name: Compute metadata
+        id: meta
+        run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Build ${{ matrix.name }}
+        run: |
+          SHORT_SHA=${{ steps.meta.outputs.short_sha }}
+          OUTDIR="build/variants/${{ matrix.name }}"
+          make VARIANT=${{ matrix.name }} ${{ matrix.flags }} OUTDIR=$OUTDIR COMMIT_HASH=$SHORT_SHA clean
+          make VARIANT=${{ matrix.name }} ${{ matrix.flags }} OUTDIR=$OUTDIR COMMIT_HASH=$SHORT_SHA all
+          test -f "$OUTDIR/BUILD_CONFIG.txt"
+
+      - name: Upload ${{ matrix.name }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ps2bbl-${{ matrix.name }}-${{ steps.meta.outputs.short_sha }}
+          path: build/variants/${{ matrix.name }}
