@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
@@ -138,52 +139,86 @@ char **str_split(char *a_str, const char a_delim)
 }
 
 /**
- * @brief  method returns true if it can extract needed info from path, otherwise false.
- * In case of true, it also updates mountString, mountPoint and newCWD parameters
+ * @brief  method returns 0 if it can extract needed info from path, otherwise a negative error code.
+ * In case of success, it also updates mountString, mountPoint and newCWD parameters
  * It splits path by ":", and requires a minimum of 3 elements
  * Example: if path = hdd0:__common:pfs:/retroarch/ then
  * mountString = "pfs:"
  * mountPoint = "hdd0:__common"
  * newCWD = pfs:/retroarch/
- * return true
+ * return 0 on success, negative error code on failure
 */
-int getMountInfo(char *path, char *mountString, char *mountPoint, char *newCWD)
+int getMountInfo(char *path, char *mountString, size_t mountStringSize, char *mountPoint, size_t mountPointSize, char *newCWD, size_t newCWDSize)
 {
-    int expected_items = 4;
     int i = 0;
-    char *items[expected_items];
     char **tokens = str_split(path, ':');
+    int ret = -EINVAL;
 
     if (!tokens)
-        return 0;
+        return -ENOMEM;
 
-    for (i = 0; *(tokens + i); i++) {
-        if (i < expected_items) {
-            items[i] = *(tokens + i);
-        } else {
-            free(*(tokens + i));
+    for (i = 0; *(tokens + i); i++)
+        ;
+
+    if (i < 3)
+        goto cleanup;
+
+    if (mountPoint != NULL) {
+        if (mountPointSize == 0) {
+            ret = -ENAMETOOLONG;
+            goto cleanup;
+        }
+        int written = snprintf(mountPoint, mountPointSize, "%s:%s", tokens[0], tokens[1]);
+        if (written < 0) {
+            ret = -EIO;
+            goto cleanup;
+        }
+        if ((size_t)written >= mountPointSize) {
+            ret = -ENAMETOOLONG;
+            goto cleanup;
         }
     }
 
-    if (i < 3)
-        return 0;
+    if (mountString != NULL) {
+        if (mountStringSize == 0) {
+            ret = -ENAMETOOLONG;
+            goto cleanup;
+        }
+        int written = snprintf(mountString, mountStringSize, "%s:", tokens[2]);
+        if (written < 0) {
+            ret = -EIO;
+            goto cleanup;
+        }
+        if ((size_t)written >= mountStringSize) {
+            ret = -ENAMETOOLONG;
+            goto cleanup;
+        }
+    }
 
-    if (mountPoint != NULL)
-        sprintf(mountPoint, "%s:%s", items[0], items[1]);
+    if (newCWD != NULL) {
+        if (newCWDSize == 0) {
+            ret = -ENAMETOOLONG;
+            goto cleanup;
+        }
+        int written = snprintf(newCWD, newCWDSize, "%s:%s", tokens[2], i > 3 ? tokens[3] : "");
+        if (written < 0) {
+            ret = -EIO;
+            goto cleanup;
+        }
+        if ((size_t)written >= newCWDSize) {
+            ret = -ENAMETOOLONG;
+            goto cleanup;
+        }
+    }
 
-    if (mountString != NULL)
-        sprintf(mountString, "%s:", items[2]);
+    ret = 0;
 
-    if (newCWD != NULL)
-        sprintf(newCWD, "%s:%s", items[2], i > 3 ? items[3] : "");
+cleanup:
+    for (int idx = 0; *(tokens + idx); idx++) {
+        free(*(tokens + idx));
+    }
+    free(tokens);
 
-    free(items[0]);
-    free(items[1]);
-    free(items[2]);
-
-    if (i > 3)
-        free(items[3]);
-
-    return 1;
+    return ret;
 }
 #endif

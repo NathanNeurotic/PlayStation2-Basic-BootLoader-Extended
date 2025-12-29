@@ -1,3 +1,5 @@
+#include <errno.h>
+
 #include "main.h"
 // --------------- glob stuff --------------- //
 #define RUNKELF_ARG_BUF_SIZE 64
@@ -1296,16 +1298,29 @@ int MountParty(const char *path)
     DPRINTF("%s: %s\n", __func__, path);
     char *BUF = NULL;
     BUF = strdup(path); //use strdup, otherwise, path will become `hdd0:`
-    char MountPoint[40];
-    if (getMountInfo(BUF, NULL, MountPoint, NULL)) {
-        mnt(MountPoint);
-        if (BUF != NULL)
-            free(BUF);
-        strcpy(PART, MountPoint);
-        strcat(PART, ":");
-        return 0;
+    if (BUF == NULL) {
+        DPRINTF("ERROR: could not duplicate path '%s'\n", path);
+        return ret;
+    }
+    char MountPoint[sizeof(PART)];
+    int mountInfoRet = getMountInfo(BUF, NULL, 0, MountPoint, sizeof(MountPoint), NULL, 0);
+    if (mountInfoRet == 0) {
+        ret = mnt(MountPoint);
+        if (ret == 0) {
+            int part_written = snprintf(PART, sizeof(PART), "%s:", MountPoint);
+            if (part_written < 0 || (size_t)part_written >= sizeof(PART)) {
+                DPRINTF("ERROR: partition path too long for PART buffer\n");
+                PART[0] = '\0';
+                ret = -ENAMETOOLONG;
+            } else {
+                free(BUF);
+                return 0;
+            }
+        }
     } else {
-        DPRINTF("ERROR: could not process path '%s'\n", path);
+        DPRINTF("ERROR: could not process path '%s' (err=%d)\n", path, mountInfoRet);
+        if (mountInfoRet == -ENAMETOOLONG)
+            DPRINTF("Path components exceed buffer limits and were rejected\n");
         PART[0] = '\0';
     }
     if (BUF != NULL)
