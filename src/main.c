@@ -897,8 +897,8 @@ static int __attribute__((unused)) LocateExternalIRXPath(const char *filename, c
 {
     size_t i;
     static const char *const search_templates[] = {
-        "mc0:/SYS-CONF/PS2BBL/%s",
-        "mc1:/SYS-CONF/PS2BBL/%s",
+        "mc0:/SYS-CONF/%s",
+        "mc1:/SYS-CONF/%s",
         "mc?:/SYS-CONF/%s",
     };
 
