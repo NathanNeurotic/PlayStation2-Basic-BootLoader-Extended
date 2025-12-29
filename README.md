@@ -2,7 +2,8 @@
 <br />
 <p align="center">
   <a href="https://israpps.github.io/PlayStation2-Basic-BootLoader/">
-    <img src="https://israpps.github.io/PlayStation2-Basic-BootLoader/logo.png" alt="Logo" width="100%" height="auto">
+    <img width="1536" height="1024" alt="ChatGPT Image Dec 28, 2025, 07_29_41 PM" src="https://github.com/user-attachments/assets/e5c5fe17-6fe8-43bd-a581-105d3954f6f5"
+ alt="Logo" width="100%" height="auto">
   </a>
 
   <p align="center">
