@@ -128,36 +128,48 @@ jobs:
         with:
           path: release-artifacts
           pattern: ps2bbl-*
+          merge-multiple: true
+          if-no-files-found: ignore
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Archive artifacts
         run: |
-          mkdir -p release-packages
+          mkdir -p release-artifacts release-packages
           for dir in release-artifacts/*; do
             [ -d "$dir" ] || continue
             base=$(basename "$dir")
             tar -czf "release-packages/${base}.tar.gz" -C "$dir" .
           done
 
-      - name: Prepare release notes
+      - name: Check packaged artifacts
+        id: packages
         run: |
-          SHORT_SHA=${GITHUB_SHA::7}
-          {
-            echo "Automated CL prerelease for ${GITHUB_SHA}"
-            echo
-            echo "Artifacts:"
-            for file in release-packages/*; do
-              echo "- $(basename "$file")"
-            done
-          } > RELEASE_BODY.md
+          count=$(find release-packages -type f -name '*.tar.gz' | wc -l | tr -d ' ')
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          if [ "$count" = "0" ]; then
+            echo "No packaged artifacts found; skipping release publication." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Generate release notes
+        run: |
+          python3 scripts/generate_cl_release_notes.py \
+            --artifacts-dir release-artifacts \
+            --packages-dir release-packages \
+            --output RELEASE_BODY.md \
+            --release-sha "${GITHUB_SHA}"
+          echo "### Batch manifest overview" >> "$GITHUB_STEP_SUMMARY"
+          cat RELEASE_BODY.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish prerelease
+        if: steps.packages.outputs.count != '0'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: cl-${{ github.sha }}
           name: CL prerelease ${{ github.sha }}
           body_path: RELEASE_BODY.md
           prerelease: true
-          overwrite: true
           files: release-packages/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
