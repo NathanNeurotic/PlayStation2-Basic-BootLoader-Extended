@@ -32,21 +32,21 @@ jobs:
           set -euo pipefail
           make list-variants > variants.json
           python3 - <<'PY' > matrix.json
-import json, os
+          import json, os
 
-CHUNK_SIZE = int(os.environ.get("CHUNK_SIZE", "25"))
-with open("variants.json", "r", encoding="utf-8") as fh:
-    variants = json.load(fh).get("include", [])
+          CHUNK_SIZE = int(os.environ.get("CHUNK_SIZE", "25"))
+          with open("variants.json", "r", encoding="utf-8") as fh:
+              variants = json.load(fh).get("include", [])
 
-batches = []
-for idx in range(0, len(variants), CHUNK_SIZE):
-    batch = variants[idx : idx + CHUNK_SIZE]
-    batches.append({"index": idx // CHUNK_SIZE, "batch": json.dumps(batch)})
+          batches = []
+          for idx in range(0, len(variants), CHUNK_SIZE):
+              batch = variants[idx : idx + CHUNK_SIZE]
+              batches.append({"index": idx // CHUNK_SIZE, "batch": json.dumps(batch)})
 
-print(json.dumps({"include": batches}, sort_keys=False))
-with open("count.txt", "w", encoding="utf-8") as fh:
-    fh.write(str(len(variants)))
-PY
+          print(json.dumps({"include": batches}, sort_keys=False))
+          with open("count.txt", "w", encoding="utf-8") as fh:
+              fh.write(str(len(variants)))
+          PY
           echo "variant_count=$(cat count.txt)" >> "$GITHUB_OUTPUT"
           echo "matrix<<EOF" >> "$GITHUB_OUTPUT"
           cat matrix.json >> "$GITHUB_OUTPUT"
