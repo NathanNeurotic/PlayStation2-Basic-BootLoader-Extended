@@ -129,6 +129,9 @@ jobs:
           path: release-artifacts
           pattern: ps2bbl-*
 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Archive artifacts
         run: |
           mkdir -p release-packages
