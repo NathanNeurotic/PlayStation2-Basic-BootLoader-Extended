@@ -133,6 +133,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Archive artifacts
         run: |
           mkdir -p release-artifacts release-packages
