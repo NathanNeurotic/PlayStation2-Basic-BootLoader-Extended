@@ -1,7 +1,7 @@
 <br />
 <p align="center">
   <a href="https://israpps.github.io/PlayStation2-Basic-BootLoader/">
-    <img width="1536" height="1024" alt="PS2BBL Logo" src="https://github.com/user-attachments/assets/02508d63-70aa-46a7-9a97-87de7cbe8c0d" />
+    <img width="1536" height="1024" alt="PS2BBL Logo" src="https://github.com/user-attachments/assets/06f5c8a7-37c0-4e69-bd20-3fc890f045e6" />
   </a>
 </p>
 
