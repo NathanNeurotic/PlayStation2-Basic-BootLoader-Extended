@@ -126,9 +126,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Discover available artifacts
+        id: discover_artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-artifacts
+          artifacts=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" -q '.artifacts[].name' | sed -n '/^ps2bbl-/p')
+          count=$(printf "%s\n" "$artifacts" | sed '/^$/d' | wc -l | tr -d ' ')
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          if [ "$count" = "0" ]; then
+            echo "No matching artifacts were found for prerelease packaging." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Download artifacts
+        if: steps.discover_artifacts.outputs.count != '0'
         uses: actions/download-artifact@v4
-        continue-on-error: true
         with:
           path: release-artifacts
           pattern: ps2bbl-*
