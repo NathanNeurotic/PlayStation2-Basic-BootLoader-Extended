@@ -8,9 +8,57 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  matrix:
     runs-on: ubuntu-latest
     container: ps2dev/ps2dev:latest
+    outputs:
+      variants: ${{ steps.variants.outputs.matrix }}
+      variant_count: ${{ steps.variants.outputs.variant_count }}
+    steps:
+      - name: Install dependencies
+        run: apk add --no-cache build-base git p7zip python3
+
+      - uses: actions/checkout@v4
+      - name: Configure git
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --prune --unshallow || true
+
+      - name: Generate variant matrix
+        id: variants
+        env:
+          CHUNK_SIZE: 25
+        run: |
+          set -euo pipefail
+          make list-variants > variants.json
+          python3 - <<'PY' > matrix.json
+          import json, os
+
+          CHUNK_SIZE = int(os.environ.get("CHUNK_SIZE", "25"))
+          with open("variants.json", "r", encoding="utf-8") as fh:
+              variants = json.load(fh).get("include", [])
+
+          batches = []
+          for idx in range(0, len(variants), CHUNK_SIZE):
+              batch = variants[idx : idx + CHUNK_SIZE]
+              batches.append({"index": idx // CHUNK_SIZE, "batch": json.dumps(batch)})
+
+          print(json.dumps({"include": batches}, sort_keys=False))
+          with open("count.txt", "w", encoding="utf-8") as fh:
+              fh.write(str(len(variants)))
+          PY
+          echo "variant_count=$(cat count.txt)" >> "$GITHUB_OUTPUT"
+          echo "matrix<<EOF" >> "$GITHUB_OUTPUT"
+          cat matrix.json >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: matrix
+    runs-on: ubuntu-latest
+    container: ps2dev/ps2dev:latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix.outputs.variants) }}
     steps:
       - name: Install dependencies
         run: apk add --no-cache build-base git p7zip python3 nodejs npm
@@ -25,53 +73,45 @@ jobs:
         id: meta
         run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
-      - name: Enumerate variants
-        run: make list-variants > variants.json
-
-      - name: Build all variants
+      - name: Build batch ${{ matrix.index }}
         env:
+          BATCH_JSON: ${{ matrix.batch }}
           SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
           import json, os, shlex, subprocess, sys
 
-          with open("variants.json", "r", encoding="utf-8") as fh:
-              variants = json.load(fh).get("include", [])
+          batch = json.loads(os.environ["BATCH_JSON"])
+          short_sha = os.environ["SHORT_SHA"]
 
-          if not variants:
-              sys.exit("No variants produced by list-variants")
-
-          for entry in variants:
+          for entry in batch:
               name = entry["name"]
               flags = entry.get("flags", "").strip()
               outdir = os.path.join("build", "variants", name)
-              base = ["make", f"VARIANT={name}", f"OUTDIR={outdir}", f"COMMIT_HASH={os.environ['SHORT_SHA']}"]
+              base = ["make", f"VARIANT={name}", f"OUTDIR={outdir}", f"COMMIT_HASH={short_sha}"]
               if flags:
                   base += shlex.split(flags)
               subprocess.run(base + ["clean"], check=True)
               subprocess.run(base + ["all"], check=True)
               cfg = os.path.join(outdir, "BUILD_CONFIG.txt")
               if not os.path.isfile(cfg):
-                  sys.exit(f"Missing BUILD_CONFIG.txt for {name}")
+                  raise SystemExit(f"Missing BUILD_CONFIG.txt for {name}")
           PY
 
-      - name: Upload artifacts
+      - name: Upload batch ${{ matrix.index }}
         env:
+          BATCH_JSON: ${{ matrix.batch }}
           SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
         run: |
           set -euo pipefail
           npm install @actions/artifact
           node - <<'NODE'
+          const artifact = require('@actions/artifact');
           const fs = require('fs');
           const path = require('path');
-          const artifact = require('@actions/artifact');
 
-          const root = path.join(process.cwd(), 'build', 'variants');
-          if (!fs.existsSync(root)) {
-            throw new Error('build/variants does not exist');
-          }
-
+          const batch = JSON.parse(process.env.BATCH_JSON);
           const client = artifact.create();
 
           const walk = (dir) => {
@@ -82,12 +122,17 @@ jobs:
           };
 
           (async () => {
-            const entries = fs.readdirSync(root, { withFileTypes: true }).filter((d) => d.isDirectory());
-            for (const entry of entries) {
-              const variantRoot = path.join(root, entry.name);
-              const files = walk(variantRoot);
-              if (!files.length) continue;
-              await client.uploadArtifact(`ps2bbl-${entry.name}-${process.env.SHORT_SHA}`, files, variantRoot, {
+            for (const entry of batch) {
+              const name = entry.name;
+              const outdir = path.join('build', 'variants', name);
+              if (!fs.existsSync(outdir)) {
+                throw new Error(`build output missing for ${name}`);
+              }
+              const files = walk(outdir);
+              if (!files.length) {
+                throw new Error(`no files to upload for ${name}`);
+              }
+              await client.uploadArtifact(`ps2bbl-${name}-${process.env.SHORT_SHA}`, files, outdir, {
                 continueOnError: false
               });
             }
