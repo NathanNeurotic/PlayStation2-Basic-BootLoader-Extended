@@ -1088,7 +1088,10 @@ int LookForBDMDevice(void)
         if ((dd = fileXioDopen(mass_path)) >= 0) {
             int *intptr_ctl = (int *)DEVID;
             *intptr_ctl = fileXioIoctl(dd, USBMASS_IOCTL_GET_DRIVERNAME, "");
-            close(dd);
+            int close_ret = fileXioDclose(dd);
+            if (close_ret < 0) {
+                DPRINTF("%s: fileXioDclose failed: %d\n", __func__, close_ret);
+            }
             if (!strncmp(DEVID, "sdc", 3)) {
                 DPRINTF("%s: Found MX4SIO device at mass%d:/\n", __func__, x);
                 return x;
