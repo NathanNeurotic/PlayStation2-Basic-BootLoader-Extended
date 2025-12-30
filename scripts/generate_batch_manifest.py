@@ -97,22 +97,31 @@ def render_header(batch_name: str, outdir: pathlib.Path, config: Dict[str, str])
     return lines
 
 
-def render_table(files: Iterable[pathlib.Path]) -> List[str]:
-    rows: List[Tuple[str, str, str]] = []
+def render_table(files: Iterable[pathlib.Path], outdir: pathlib.Path) -> List[str]:
+    rows: List[Tuple[str, str, str, str]] = []
+    outdir_parent = outdir.parent
+
     for file_path in files:
+        try:
+            download_path = file_path.relative_to(outdir_parent)
+        except ValueError:
+            download_path = file_path.name
+
         rows.append(
             (
                 f"`{file_path.name}`",
+                f"`{download_path}`",
                 human_size(file_path.stat().st_size),
                 describe_file(file_path),
             )
         )
+
     if not rows:
         return ["No artifacts were found for this batch."]
 
-    lines: List[str] = ["| File | Size | Description |", "| --- | --- | --- |"]
-    for name, size, desc in rows:
-        lines.append(f"| {name} | {size} | {desc} |")
+    lines: List[str] = ["| File | Download path | Size | Description |", "| --- | --- | --- | --- |"]
+    for name, rel_path, size, desc in rows:
+        lines.append(f"| {name} | {rel_path} | {size} | {desc} |")
     return lines
 
 
@@ -120,7 +129,7 @@ def write_manifest(batch_name: str, outdir: pathlib.Path, dest: pathlib.Path) ->
     config = parse_config(outdir / "BUILD_CONFIG.txt")
     parts: List[str] = []
     parts.extend(render_header(batch_name, outdir, config))
-    parts.extend(render_table(gather_files(outdir, dest)))
+    parts.extend(render_table(gather_files(outdir, dest), outdir))
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text("\n".join(parts) + "\n")
 
