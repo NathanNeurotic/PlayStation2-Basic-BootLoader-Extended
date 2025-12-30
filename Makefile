@@ -13,22 +13,35 @@ export HEADER
 VARIANT ?= default
 
 # All boolean feature toggles and their defaults live here to keep build logic and enumeration in sync.
-FEATURE_BOOLEANS := HAS_EMBED_IRX DEBUG CHAINLOAD PSX HDD HDD_RUNTIME MMCE MMCE_RUNTIME MX4SIO MX4SIO_RUNTIME \
-                    XFROM XFROM_RUNTIME PROHBIT_DVD_0100 XCDVD_READKEY UDPTTY PPCTTY HOMEBREW_IRX FILEXIO_NEED DEV9_NEED \
+FEATURE_BOOLEANS := HAS_EMBED_IRX DEBUG CHAINLOAD RUNTIME \
+                    HDD HDD_CHAINLOAD HDD_RUNTIME \
+                    MMCE MMCE_CHAINLOAD MMCE_RUNTIME \
+                    MX4SIO MX4SIO_CHAINLOAD MX4SIO_RUNTIME \
+                    USB USB_CHAINLOAD USB_RUNTIME \
+                    XFROM XFROM_CHAINLOAD XFROM_RUNTIME \
+                    PSX PROHBIT_DVD_0100 XCDVD_READKEY UDPTTY PPCTTY HOMEBREW_IRX FILEXIO_NEED DEV9_NEED \
                     KERNEL_NOPATCH NEWLIB_NANO DUMMY_TIMEZONE DUMMY_LIBC_INIT
 
 # Default values (0/1) for each boolean toggle
 DEFAULT_HAS_EMBED_IRX ?= 1 # whether to embed or not non vital IRX (which will be loaded from memcard files)
 DEFAULT_DEBUG ?= 0
 DEFAULT_CHAINLOAD ?= 0 # Only inits the system and boots CHAINLOAD_PATH from the memory card. If specified file doesn't exist, attempts to boot RESCUE.ELF from USB
+DEFAULT_RUNTIME ?= 0
 DEFAULT_PSX ?= 0 # PSX DESR support
 DEFAULT_HDD ?= 0 # whether to add internal HDD support
+DEFAULT_HDD_CHAINLOAD ?= 0
 DEFAULT_HDD_RUNTIME ?= 0 # allow runtime HDD enablement via external IRX
 DEFAULT_MMCE ?= 0
+DEFAULT_MMCE_CHAINLOAD ?= 0
 DEFAULT_MMCE_RUNTIME ?= 0
 DEFAULT_MX4SIO ?= 0
+DEFAULT_MX4SIO_CHAINLOAD ?= 0
 DEFAULT_MX4SIO_RUNTIME ?= 0
+DEFAULT_USB ?= 0
+DEFAULT_USB_CHAINLOAD ?= 0
+DEFAULT_USB_RUNTIME ?= 0
 DEFAULT_XFROM ?= 0
+DEFAULT_XFROM_CHAINLOAD ?= 0
 DEFAULT_XFROM_RUNTIME ?= 0
 DEFAULT_PROHBIT_DVD_0100 ?= 0 # prohibit the DVD Players v1.00 and v1.01 from being booted.
 DEFAULT_XCDVD_READKEY ?= 0 # Enable the newer sceCdReadKey checks, which are only supported by a newer CDVDMAN module.
@@ -60,10 +73,6 @@ PRINTF ?= $(DEFAULT_PRINTF)
 
 CANONICAL_OPTIONS := $(FEATURE_BOOLEANS) PRINTF CHAINLOAD_PATH
 
-# Feature flags usable for matrix enumeration (boolean cartesian product) and multi-choice members
-FEATURE_MATRIX_BOOLEANS := CHAINLOAD PSX HDD HDD_RUNTIME MMCE MMCE_RUNTIME MX4SIO MX4SIO_RUNTIME XFROM XFROM_RUNTIME UDPTTY PPCTTY
-FEATURE_MATRIX_ENUMERATIONS := PRINTF
-
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD)
 SUPPRESS_FEATURE_INFO := $(if $(filter list-variants variants,$(MAKECMDGOALS)),1,)
 feature_info = $(if $(SUPPRESS_FEATURE_INFO),,$(info $(1)))
@@ -74,8 +83,9 @@ ifeq ($(strip $(PRINTF)),)
 endif
 
 # ---{ OUTPUT LOCATIONS }--- #
+VARIANTS_OUTDIR ?= build/variants
 ifndef BINDIR
-  OUTDIR ?= $(if $(filter default,$(VARIANT)),bin,build/out/$(VARIANT))
+  OUTDIR ?= $(if $(filter default,$(VARIANT)),bin,$(VARIANTS_OUTDIR)/$(VARIANT))
   OUTDIR := $(patsubst %/,%,$(OUTDIR))
   BINDIR := $(OUTDIR)/
 else
@@ -84,7 +94,11 @@ else
 endif
 EE_OBJS_DIR := $(OUTDIR)/obj/
 EE_ASM_DIR := $(OUTDIR)/asm/
-VARIANTS_OUTDIR ?= build/variants
+DEVICE_LIST := HDD MMCE MX4SIO USB XFROM
+MODE_LABEL = $(strip $(if $(filter 1,$(2)),runtime$(if $(filter 1,$(1)),_chainload,),$(if $(filter 1,$(1)),chainload,normal)))
+GLOBAL_MODE = $(call MODE_LABEL,$(CHAINLOAD),$(RUNTIME))
+SELECTED_DEVICES = $(strip $(foreach dev,$(DEVICE_LIST),$(if $(filter 1,$($(dev))),$(dev),)))
+DEVICE_MODES = $(strip $(foreach dev,$(DEVICE_LIST),$(if $(filter 1,$($(dev))),$(dev):$(call MODE_LABEL,$($(dev)_CHAINLOAD),$($(dev)_RUNTIME)),)))
 
 # ---{ VARIANT ENUMERATION SUPPORT }--- #
 # Invalid combinations expressed as pairs for validation and automatic matrix pruning
@@ -177,9 +191,15 @@ ifneq ($(and $(filter 1,$(XFROM)),$(filter 1,$(XFROM_RUNTIME))),)
   $(error XFROM cannot coexist with XFROM_RUNTIME)
 endif
 
+CHAINLOAD := $(if $(filter 1,$(CHAINLOAD) $(HDD_CHAINLOAD) $(MMCE_CHAINLOAD) $(MX4SIO_CHAINLOAD) $(USB_CHAINLOAD) $(XFROM_CHAINLOAD)),1,0)
+
 ifeq ($(CHAINLOAD), 1)
   HAS_EMBED_IRX = 1
   EE_CFLAGS += -DCHAINLOAD -DCHAINLOAD_PATH=\"$(CHAINLOAD_PATH)\"
+endif
+
+ifeq ($(RUNTIME), 1)
+  EE_CFLAGS += -DRUNTIME
 endif
 
 ifeq ($(MX4SIO), 1)
@@ -445,9 +465,13 @@ $(BUILD_CONFIG): $(EE_BIN)
 	@echo "UTC_TIME=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')" >> $@
 	@echo "OUTDIR=$(OUTDIR)" >> $@
 	@echo "BASENAME=$(BASENAME)" >> $@
+	@echo "DEVICES=$(if $(SELECTED_DEVICES),$(SELECTED_DEVICES),NONE)" >> $@
+	@echo "GLOBAL_MODE=$(GLOBAL_MODE)" >> $@
+	@echo "DEVICE_MODES=$(if $(DEVICE_MODES),$(DEVICE_MODES),NONE)" >> $@
 	@echo "OPTIONS" >> $@
 	@for opt in $(CANONICAL_OPTIONS); do echo "  $$opt=$($(opt))"; done >> $@
 	@echo "MAKEOVERRIDES=$(MAKEOVERRIDES)" >> $@
+	@echo "FLAGS=$(strip $(MAKEOVERRIDES))" >> $@
 	@echo "CFLAGS=$(EE_CFLAGS)" >> $@
 	@echo "DEFINES=$(filter -D%,$(EE_CFLAGS))" >> $@
 # move OBJ to folder and search source on src/, borrowed from OPL makefile
@@ -483,26 +507,7 @@ endif
 	$(EE_AS) $(EE_ASFLAGS) $< -o $@
 
 list-variants:
-	@FEATURES="$(FEATURE_MATRIX_BOOLEANS)" \
-	DEFAULTS="$(foreach f,$(FEATURE_MATRIX_BOOLEANS),$(f)=$($(f)) )" \
-	PRINTF_CHOICES="$(PRINTF_CHOICES)" \
-	PRINTF_DEFAULT="$(DEFAULT_PRINTF)" \
-	INVALIDS="$(FEATURE_INVALID_PAIRS)" \
-	python3 - <<-'PY'
-		import itertools, json, os
-		bool_features = [f for f in os.environ["FEATURES"].split() if f]
-		defaults = {k: int(v) for k, v in (kv.split("=") for kv in os.environ["DEFAULTS"].split() if kv)}
-		printf_choices = [p for p in os.environ["PRINTF_CHOICES"].split() if p]
-		printf_default = os.environ.get("PRINTF_DEFAULT", "NONE")
-		invalid_pairs = [tuple(pair.split("+")) for pair in os.environ.get("INVALIDS", "").split() if pair]
-		conflicts = lambda combo: any(combo.get(a, 0) == 1 and combo.get(b, 0) == 1 for a, b in invalid_pairs)
-		variant_name = lambda combo, p: (lambda tokens: "base" if not tokens else "_".join(tokens))([*(f.lower() for f in bool_features if combo[f] and not defaults.get(f, 0)), *(f"no_{f.lower()}" for f in bool_features if (not combo[f]) and defaults.get(f, 0)), *( [f"printf_{p.lower()}"] if p != printf_default else [] )])
-		variant_flags = lambda combo, p: " ".join([f"{feature}={combo[feature]}" for feature in bool_features if combo[feature] != defaults.get(feature, 0)] + ([f"PRINTF={p}"] if p != printf_default else []))
-		variants = [{"name": variant_name(dict(zip(bool_features, values)), p), "flags": variant_flags(dict(zip(bool_features, values)), p)} for values in itertools.product([0, 1], repeat=len(bool_features)) for p in printf_choices if not conflicts(dict(zip(bool_features, values)))]
-		seen = {}
-		for entry in variants: seen[(entry["name"], entry["flags"])] = entry
-		print(json.dumps({"include": list(seen.values())}, sort_keys=False))
-		PY
+	@python3 scripts/list_variants.py
 
 variants:
 	@matrix="$$( $(MAKE) --no-print-directory list-variants )"; \
@@ -511,8 +516,15 @@ variants:
 		matrix = json.loads("""$${matrix}""")
 		include = matrix.get("include", [])
 		for entry in include:
-			name = entry["name"]; flags = entry.get("flags", "").strip(); outdir = os.path.join("$(VARIANTS_OUTDIR)", name); base = ["$(MAKE)", f"VARIANT={name}", f"OUTDIR={outdir}"] + (shlex.split(flags) if flags else []); subprocess.run(base + ["clean"], check=True); subprocess.run(base + ["all"], check=True)
-		PY
+			name = entry["name"]
+			flags = entry.get("flags", "").strip()
+			outdir = os.path.join("$(VARIANTS_OUTDIR)", name)
+			base = ["$(MAKE)", f"VARIANT={name}", f"OUTDIR={outdir}"] + (shlex.split(flags) if flags else [])
+			subprocess.run(base + ["clean"], check=True)
+			subprocess.run(base + ["all"], check=True)
+			cfg = os.path.join(outdir, "BUILD_CONFIG.txt")
+			subprocess.run(["/bin/sh", "-c", f"test -f {cfg}"], check=True)
+	PY
 #
 analize:
 	$(MAKE) rebuild DEBUG=1
