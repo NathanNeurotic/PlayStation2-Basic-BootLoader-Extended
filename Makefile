@@ -9,42 +9,60 @@ __________  _________________   ____________________.____
 endef
 export HEADER
 
-# ---{ CANONICAL BUILD OPTIONS }--- #
+# ---{ CANONICAL FEATURE TOGGLES }--- #
 VARIANT ?= default
 
-# Device and platform feature toggles
-HAS_EMBED_IRX ?= 1 # whether to embed or not non vital IRX (wich will be loaded from memcard files)
-DEBUG ?= 0
-CHAINLOAD ?= 0 # Only inits the system and boots CHAINLOAD_PATH from the memory card. If specified file doesn't exist, attempts to boot RESCUE.ELF from USB
-CHAINLOAD_PATH ?= mc?:/BOOT/PAYLOAD.ELF
-PSX ?= 0 # PSX DESR support
-HDD ?= 0 #wether to add internal HDD support
-MMCE ?= 0
-MX4SIO ?= 0
-XFROM ?= 0
-PROHBIT_DVD_0100 ?= 0 # prohibit the DVD Players v1.00 and v1.01 from being booted.
-XCDVD_READKEY ?= 0 # Enable the newer sceCdReadKey checks, which are only supported by a newer CDVDMAN module.
-UDPTTY ?= 0 # printf over UDP
-PPCTTY ?= 0 # printf over PowerPC UART
-PRINTF ?= NONE
-HDD_RUNTIME ?= 0 # allow runtime HDD enablement via external IRX
-MX4SIO_RUNTIME ?= 0
-MMCE_RUNTIME ?= 0
-XFROM_RUNTIME ?= 0
+# All boolean feature toggles and their defaults live here to keep build logic and enumeration in sync.
+FEATURE_BOOLEANS := HAS_EMBED_IRX DEBUG CHAINLOAD PSX HDD HDD_RUNTIME MMCE MMCE_RUNTIME MX4SIO MX4SIO_RUNTIME \
+                    XFROM XFROM_RUNTIME PROHBIT_DVD_0100 XCDVD_READKEY UDPTTY PPCTTY HOMEBREW_IRX FILEXIO_NEED DEV9_NEED \
+                    KERNEL_NOPATCH NEWLIB_NANO DUMMY_TIMEZONE DUMMY_LIBC_INIT
 
-HOMEBREW_IRX ?= 0 # if we need homebrew SIO2MAN, MCMAN, MCSERV & PADMAN embedded, else, builtin console drivers are used
-FILEXIO_NEED ?= 0 # if we need filexio and imanx loaded for other features (HDD, mx4sio, etc)
-DEV9_NEED ?= 0    # if we need DEV9 loaded for other features (HDD, UDPTTY, etc)
-
+# Default values (0/1) for each boolean toggle
+DEFAULT_HAS_EMBED_IRX ?= 1 # whether to embed or not non vital IRX (which will be loaded from memcard files)
+DEFAULT_DEBUG ?= 0
+DEFAULT_CHAINLOAD ?= 0 # Only inits the system and boots CHAINLOAD_PATH from the memory card. If specified file doesn't exist, attempts to boot RESCUE.ELF from USB
+DEFAULT_PSX ?= 0 # PSX DESR support
+DEFAULT_HDD ?= 0 # whether to add internal HDD support
+DEFAULT_HDD_RUNTIME ?= 0 # allow runtime HDD enablement via external IRX
+DEFAULT_MMCE ?= 0
+DEFAULT_MMCE_RUNTIME ?= 0
+DEFAULT_MX4SIO ?= 0
+DEFAULT_MX4SIO_RUNTIME ?= 0
+DEFAULT_XFROM ?= 0
+DEFAULT_XFROM_RUNTIME ?= 0
+DEFAULT_PROHBIT_DVD_0100 ?= 0 # prohibit the DVD Players v1.00 and v1.01 from being booted.
+DEFAULT_XCDVD_READKEY ?= 0 # Enable the newer sceCdReadKey checks, which are only supported by a newer CDVDMAN module.
+DEFAULT_UDPTTY ?= 0 # printf over UDP
+DEFAULT_PPCTTY ?= 0 # printf over PowerPC UART
+DEFAULT_HOMEBREW_IRX ?= 0 # if we need homebrew SIO2MAN, MCMAN, MCSERV & PADMAN embedded, else, builtin console drivers are used
+DEFAULT_FILEXIO_NEED ?= 0 # if we need filexio and imanx loaded for other features (HDD, mx4sio, etc)
+DEFAULT_DEV9_NEED ?= 0    # if we need DEV9 loaded for other features (HDD, UDPTTY, etc)
 # Related to binary size reduction (it disables some features, please be sure you won't disable something you need)
-KERNEL_NOPATCH ?= 0
-NEWLIB_NANO ?= 1
-DUMMY_TIMEZONE ?= 1
-DUMMY_LIBC_INIT ?= 0
+DEFAULT_KERNEL_NOPATCH ?= 0
+DEFAULT_NEWLIB_NANO ?= 1
+DEFAULT_DUMMY_TIMEZONE ?= 1
+DEFAULT_DUMMY_LIBC_INIT ?= 0
 
-CANONICAL_OPTIONS := HAS_EMBED_IRX DEBUG CHAINLOAD CHAINLOAD_PATH PSX HDD HDD_RUNTIME MMCE MMCE_RUNTIME MX4SIO MX4SIO_RUNTIME \
-                     XFROM XFROM_RUNTIME PROHBIT_DVD_0100 XCDVD_READKEY UDPTTY PPCTTY PRINTF HOMEBREW_IRX FILEXIO_NEED DEV9_NEED \
-                     KERNEL_NOPATCH NEWLIB_NANO DUMMY_TIMEZONE DUMMY_LIBC_INIT
+# Apply defaults using a single source of truth (treat empty env overrides as unset)
+define init_feature_default
+ifeq ($(strip $($(1))),)
+  $(1) := $(DEFAULT_$(1))
+endif
+endef
+$(foreach feature,$(FEATURE_BOOLEANS),$(eval $(call init_feature_default,$(feature))))
+
+CHAINLOAD_PATH ?= mc?:/BOOT/PAYLOAD.ELF
+
+# Multi-choice feature toggles
+PRINTF_CHOICES := NONE PRINTF EE_SIO SCR
+DEFAULT_PRINTF ?= NONE
+PRINTF ?= $(DEFAULT_PRINTF)
+
+CANONICAL_OPTIONS := $(FEATURE_BOOLEANS) PRINTF CHAINLOAD_PATH
+
+# Feature flags usable for matrix enumeration (boolean cartesian product) and multi-choice members
+FEATURE_MATRIX_BOOLEANS := CHAINLOAD PSX HDD HDD_RUNTIME MMCE MMCE_RUNTIME MX4SIO MX4SIO_RUNTIME XFROM XFROM_RUNTIME UDPTTY PPCTTY
+FEATURE_MATRIX_ENUMERATIONS := PRINTF
 
 COMMIT_HASH ?= $(shell git rev-parse --short HEAD)
 SUPPRESS_FEATURE_INFO := $(if $(filter list-variants variants,$(MAKECMDGOALS)),1,)
@@ -68,50 +86,16 @@ EE_OBJS_DIR := $(OUTDIR)/obj/
 EE_ASM_DIR := $(OUTDIR)/asm/
 VARIANTS_OUTDIR ?= build/variants
 
-# ---{ VARIANT DEFINITIONS }--- #
-VARIANT_DEFINITIONS := \
-  default: \
-  chainload:CHAINLOAD=1 \
-  hdd:HDD=1 \
-  hdd_chainload:HDD=1,CHAINLOAD=1 \
-  hdd_runtime:HDD_RUNTIME=1 \
-  hdd_runtime_chainload:HDD_RUNTIME=1,CHAINLOAD=1 \
-  mmce:MMCE=1 \
-  mmce_chainload:MMCE=1,CHAINLOAD=1 \
-  mmce_runtime:MMCE_RUNTIME=1 \
-  mmce_runtime_chainload:MMCE_RUNTIME=1,CHAINLOAD=1 \
-  mx4sio:MX4SIO=1 \
-  mx4sio_chainload:MX4SIO=1,CHAINLOAD=1 \
-  mx4sio_runtime:MX4SIO_RUNTIME=1 \
-  mx4sio_runtime_chainload:MX4SIO_RUNTIME=1,CHAINLOAD=1 \
-  xfrom:XFROM=1 \
-  xfrom_chainload:XFROM=1,CHAINLOAD=1 \
-  xfrom_runtime:XFROM_RUNTIME=1 \
-  xfrom_runtime_chainload:XFROM_RUNTIME=1,CHAINLOAD=1 \
-  psx:PSX=1 \
-  psx_chainload:PSX=1,CHAINLOAD=1 \
-  psx_hdd:PSX=1,HDD=1 \
-  psx_hdd_chainload:PSX=1,HDD=1,CHAINLOAD=1 \
-  psx_hdd_runtime:PSX=1,HDD_RUNTIME=1 \
-  psx_hdd_runtime_chainload:PSX=1,HDD_RUNTIME=1,CHAINLOAD=1 \
-  psx_mmce:PSX=1,MMCE=1 \
-  psx_mmce_chainload:PSX=1,MMCE=1,CHAINLOAD=1 \
-  psx_mmce_runtime:PSX=1,MMCE_RUNTIME=1 \
-  psx_mmce_runtime_chainload:PSX=1,MMCE_RUNTIME=1,CHAINLOAD=1 \
-  psx_mx4sio:PSX=1,MX4SIO=1 \
-  psx_mx4sio_chainload:PSX=1,MX4SIO=1,CHAINLOAD=1 \
-  psx_mx4sio_runtime:PSX=1,MX4SIO_RUNTIME=1 \
-  psx_mx4sio_runtime_chainload:PSX=1,MX4SIO_RUNTIME=1,CHAINLOAD=1 \
-  psx_xfrom:PSX=1,XFROM=1 \
-  psx_xfrom_chainload:PSX=1,XFROM=1,CHAINLOAD=1 \
-  psx_xfrom_runtime:PSX=1,XFROM_RUNTIME=1 \
-  psx_xfrom_runtime_chainload:PSX=1,XFROM_RUNTIME=1,CHAINLOAD=1 \
-  udptty:UDPTTY=1 \
-  ppctty:PPCTTY=1
-
-variant_name = $(word 1,$(subst :, ,$1))
-variant_flags = $(wordlist 2,200,$(subst :, ,$1))
-variant_json = {"name":"$(call variant_name,$1)","flags":"$(strip $(call variant_flags,$1))"}
+# ---{ VARIANT ENUMERATION SUPPORT }--- #
+# Invalid combinations expressed as pairs for validation and automatic matrix pruning
+FEATURE_INVALID_PAIRS := \
+  MMCE+MX4SIO \
+  MMCE+MX4SIO_RUNTIME \
+  MMCE_RUNTIME+MX4SIO \
+  MMCE_RUNTIME+MX4SIO_RUNTIME \
+  MMCE+MMCE_RUNTIME \
+  MX4SIO+MX4SIO_RUNTIME \
+  UDPTTY+PPCTTY
 
 # ---{ VERSIONING }--- #
 
@@ -160,23 +144,33 @@ ifneq ($(VERBOSE), 1)
 endif
 
 # ---{ VALIDATION }--- #
-ifeq ($(filter 0 1,$(HAS_EMBED_IRX)),)
-  $(error HAS_EMBED_IRX must be 0 or 1)
+$(foreach f,$(FEATURE_BOOLEANS),$(if $(filter 0 1,$(strip $($(f)))),,\
+  $(error $(f) must be 0 or 1 (got '$(strip $($(f)))'))))
+
+ifeq ($(filter $(PRINTF_CHOICES),$(PRINTF)),)
+  $(error PRINTF must be one of: $(PRINTF_CHOICES))
 endif
-ifeq ($(filter 0 1,$(DEBUG)),)
-  $(error DEBUG must be 0 or 1)
+
+ifneq ($(and $(filter 1,$(MMCE)),$(filter 1,$(MX4SIO))),)
+  $(error MMCE cannot coexist with MX4SIO)
 endif
-ifeq ($(filter 0 1,$(CHAINLOAD)),)
-  $(error CHAINLOAD must be 0 or 1)
+ifneq ($(and $(filter 1,$(MMCE)),$(filter 1,$(MX4SIO_RUNTIME))),)
+  $(error MMCE cannot coexist with MX4SIO_RUNTIME)
 endif
-ifeq ($(filter 0 1,$(PSX)),)
-  $(error PSX must be 0 or 1)
+ifneq ($(and $(filter 1,$(MMCE_RUNTIME)),$(filter 1,$(MX4SIO))),)
+  $(error MMCE_RUNTIME cannot coexist with MX4SIO)
 endif
-ifeq ($(filter 0 1,$(HDD) $(HDD_RUNTIME) $(MMCE) $(MMCE_RUNTIME) $(MX4SIO) $(MX4SIO_RUNTIME) $(XFROM) $(XFROM_RUNTIME) $(UDPTTY) $(PPCTTY)),)
-  $(error Storage/debug feature toggles must be 0 or 1)
+ifneq ($(and $(filter 1,$(MMCE_RUNTIME)),$(filter 1,$(MX4SIO_RUNTIME))),)
+  $(error MMCE_RUNTIME cannot coexist with MX4SIO_RUNTIME)
 endif
-ifeq ($(filter NONE PRINTF EE_SIO SCR,$(PRINTF)),)
-  $(error PRINTF must be one of: NONE, PRINTF, EE_SIO, SCR)
+ifneq ($(and $(filter 1,$(MMCE)),$(filter 1,$(MMCE_RUNTIME))),)
+  $(error MMCE cannot coexist with MMCE_RUNTIME)
+endif
+ifneq ($(and $(filter 1,$(MX4SIO)),$(filter 1,$(MX4SIO_RUNTIME))),)
+  $(error MX4SIO cannot coexist with MX4SIO_RUNTIME)
+endif
+ifneq ($(and $(filter 1,$(UDPTTY)),$(filter 1,$(PPCTTY))),)
+  $(error UDPTTY cannot coexist with PPCTTY)
 endif
 
 ifeq ($(CHAINLOAD), 1)
@@ -202,9 +196,6 @@ ifeq ($(MMCE), 1)
   ifeq ($(USE_ROM_SIO2MAN), 1)
     $(error MMCE needs Homebrew SIO2MAN to work)
   endif
-  ifeq ($(MX4SIO), 1)
-    $(error MX4SIO cant coexist with MMCE)
-  endif
 endif
 
 ifeq ($(MX4SIO_RUNTIME), 1)
@@ -212,15 +203,6 @@ ifeq ($(MX4SIO_RUNTIME), 1)
   FILEXIO_NEED = 1
   EE_OBJS += mx4sio_bd_irx.o
   EE_CFLAGS += -DMX4SIO_RUNTIME
-  ifeq ($(MX4SIO), 1)
-    $(error MX4SIO_RUNTIME cant coexist with MX4SIO)
-  endif
-  ifeq ($(MMCE), 1)
-    $(error MX4SIO_RUNTIME cant coexist with MMCE)
-  endif
-  ifeq ($(MMCE_RUNTIME), 1)
-    $(error MX4SIO_RUNTIME cant coexist with MMCE_RUNTIME)
-  endif
   ifeq ($(USE_ROM_SIO2MAN), 1)
     $(error MX4SIO runtime needs Homebrew SIO2MAN to work)
   endif
@@ -231,15 +213,6 @@ ifeq ($(MMCE_RUNTIME), 1)
   FILEXIO_NEED = 1
   EE_OBJS += mmceman_irx.o
   EE_CFLAGS += -DMMCE_RUNTIME
-  ifeq ($(MMCE), 1)
-    $(error MMCE_RUNTIME cant coexist with MMCE)
-  endif
-  ifeq ($(MX4SIO), 1)
-    $(error MX4SIO cant coexist with MMCE_RUNTIME)
-  endif
-  ifeq ($(MX4SIO_RUNTIME), 1)
-    $(error MX4SIO_RUNTIME cant coexist with MMCE_RUNTIME)
-  endif
   ifeq ($(USE_ROM_SIO2MAN), 1)
     $(error MMCE runtime needs Homebrew SIO2MAN to work)
   endif
@@ -413,6 +386,7 @@ endif
 
 # ---{ RECIPES }--- #
 .PHONY: greeting debug all clean kelf packed release variants list-variants
+.ONESHELL: list-variants variants
 
 all: $(EE_BIN) $(BUILD_CONFIG)
 ifeq (DEBUG, 1)
@@ -505,29 +479,36 @@ endif
 	$(EE_AS) $(EE_ASFLAGS) $< -o $@
 
 list-variants:
-	@sep=""
-	@printf '{"include":['
-	@for entry in $(VARIANT_DEFINITIONS); do \
-		name=$${entry%%:*}; \
-		flags=$${entry#*:}; \
-		if [ "$$entry" = "$$name" ]; then flags=""; fi; \
-		flags=$$(echo "$$flags" | sed 's/,/ /g'); \
-		printf '%s{"name":"%s","flags":"%s"}' "$$sep" "$$name" "$$flags"; \
-		sep=","; \
-	done; \
-	printf ']}\n'
+	@FEATURES="$(FEATURE_MATRIX_BOOLEANS)" \
+	DEFAULTS="$(foreach f,$(FEATURE_MATRIX_BOOLEANS),$(f)=$($(f)) )" \
+	PRINTF_CHOICES="$(PRINTF_CHOICES)" \
+	PRINTF_DEFAULT="$(DEFAULT_PRINTF)" \
+	INVALIDS="$(FEATURE_INVALID_PAIRS)" \
+	python3 - <<-'PY'
+		import itertools, json, os
+		bool_features = [f for f in os.environ["FEATURES"].split() if f]
+		defaults = {k: int(v) for k, v in (kv.split("=") for kv in os.environ["DEFAULTS"].split() if kv)}
+		printf_choices = [p for p in os.environ["PRINTF_CHOICES"].split() if p]
+		printf_default = os.environ.get("PRINTF_DEFAULT", "NONE")
+		invalid_pairs = [tuple(pair.split("+")) for pair in os.environ.get("INVALIDS", "").split() if pair]
+		conflicts = lambda combo: any(combo.get(a, 0) == 1 and combo.get(b, 0) == 1 for a, b in invalid_pairs)
+		variant_name = lambda combo, p: (lambda tokens: "base" if not tokens else "_".join(tokens))([*(f.lower() for f in bool_features if combo[f] and not defaults.get(f, 0)), *(f"no_{f.lower()}" for f in bool_features if (not combo[f]) and defaults.get(f, 0)), *( [f"printf_{p.lower()}"] if p != printf_default else [] )])
+		variant_flags = lambda combo, p: " ".join([f"{feature}={combo[feature]}" for feature in bool_features if combo[feature] != defaults.get(feature, 0)] + ([f"PRINTF={p}"] if p != printf_default else []))
+		variants = [{"name": variant_name(dict(zip(bool_features, values)), p), "flags": variant_flags(dict(zip(bool_features, values)), p)} for values in itertools.product([0, 1], repeat=len(bool_features)) for p in printf_choices if not conflicts(dict(zip(bool_features, values)))]
+		seen = {}
+		for entry in variants: seen[(entry["name"], entry["flags"])] = entry
+		print(json.dumps({"include": list(seen.values())}, sort_keys=False))
+		PY
 
 variants:
-	@set -e; \
-	for entry in $(VARIANT_DEFINITIONS); do \
-		name=$${entry%%:*}; \
-		flags=$${entry#*:}; \
-		if [ "$$entry" = "$$name" ]; then flags=""; fi; \
-		flags=$$(echo "$$flags" | sed 's/,/ /g'); \
-		odir="$(VARIANTS_OUTDIR)/$$name"; \
-		$(MAKE) VARIANT=$$name OUTDIR=$$odir $$flags clean >/dev/null; \
-		$(MAKE) VARIANT=$$name OUTDIR=$$odir $$flags all; \
-	done
+	@matrix="$$( $(MAKE) --no-print-directory list-variants )"; \
+	python3 - <<-'PY'
+		import json, os, subprocess, shlex
+		matrix = json.loads("""$${matrix}""")
+		include = matrix.get("include", [])
+		for entry in include:
+			name = entry["name"]; flags = entry.get("flags", "").strip(); outdir = os.path.join("$(VARIANTS_OUTDIR)", name); base = ["$(MAKE)", f"VARIANT={name}", f"OUTDIR={outdir}"] + (shlex.split(flags) if flags else []); subprocess.run(base + ["clean"], check=True); subprocess.run(base + ["all"], check=True)
+		PY
 #
 analize:
 	$(MAKE) rebuild DEBUG=1
