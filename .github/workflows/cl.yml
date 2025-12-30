@@ -31,21 +31,21 @@ jobs:
         run: |
           set -euo pipefail
           make list-variants > variants.json
-          python3 - <<'PY' > matrix.json
-          import json, os
+          cat <<'PY' | sed 's/^  //' | python3 > matrix.json
+            import json, os
 
-          CHUNK_SIZE = int(os.environ.get("CHUNK_SIZE", "25"))
-          with open("variants.json", "r", encoding="utf-8") as fh:
-              variants = json.load(fh).get("include", [])
+            CHUNK_SIZE = int(os.environ.get("CHUNK_SIZE", "25"))
+            with open("variants.json", "r", encoding="utf-8") as fh:
+                variants = json.load(fh).get("include", [])
 
-          batches = []
-          for idx in range(0, len(variants), CHUNK_SIZE):
-              batch = variants[idx : idx + CHUNK_SIZE]
-              batches.append({"index": idx // CHUNK_SIZE, "batch": json.dumps(batch)})
+            batches = []
+            for idx in range(0, len(variants), CHUNK_SIZE):
+                batch = variants[idx : idx + CHUNK_SIZE]
+                batches.append({"index": idx // CHUNK_SIZE, "batch": json.dumps(batch)})
 
-          print(json.dumps({"include": batches}, sort_keys=False))
-          with open("count.txt", "w", encoding="utf-8") as fh:
-              fh.write(str(len(variants)))
+            print(json.dumps({"include": batches}, sort_keys=False))
+            with open("count.txt", "w", encoding="utf-8") as fh:
+                fh.write(str(len(variants)))
           PY
           echo "variant_count=$(cat count.txt)" >> "$GITHUB_OUTPUT"
           echo "matrix<<EOF" >> "$GITHUB_OUTPUT"
@@ -99,48 +99,22 @@ jobs:
                   raise SystemExit(f"Missing BUILD_CONFIG.txt for {name}")
           PY
 
-      - name: Upload batch ${{ matrix.index }}
-        env:
-          BATCH_JSON: ${{ matrix.batch }}
-          SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
+      - name: Package batch ${{ matrix.index }}
         run: |
           set -euo pipefail
-          npm install @actions/artifact
-          node - <<'NODE'
-          const artifact = require('@actions/artifact');
-          const fs = require('fs');
-          const path = require('path');
+          mkdir -p artifacts
+          for variant_dir in build/variants/*; do
+            [ -d "$variant_dir" ] || continue
+            name=$(basename "$variant_dir")
+            tar -czf "artifacts/${name}.tar.gz" -C "$variant_dir" .
+          done
 
-          const batch = JSON.parse(process.env.BATCH_JSON);
-          const client = artifact.create();
-
-          const walk = (dir) => {
-            return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-              const full = path.join(dir, entry.name);
-              return entry.isDirectory() ? walk(full) : [full];
-            });
-          };
-
-          (async () => {
-            for (const entry of batch) {
-              const name = entry.name;
-              const outdir = path.join('build', 'variants', name);
-              if (!fs.existsSync(outdir)) {
-                throw new Error(`build output missing for ${name}`);
-              }
-              const files = walk(outdir);
-              if (!files.length) {
-                throw new Error(`no files to upload for ${name}`);
-              }
-              await client.uploadArtifact(`ps2bbl-${name}-${process.env.SHORT_SHA}`, files, outdir, {
-                continueOnError: false
-              });
-            }
-          })().catch((err) => {
-            console.error(err);
-            process.exit(1);
-          });
-          NODE
+      - name: Upload batch ${{ matrix.index }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ps2bbl-batch-${{ matrix.index }}-${{ steps.meta.outputs.short_sha }}
+          path: artifacts/*.tar.gz
+          if-no-files-found: error
 
   prerelease:
     needs: build

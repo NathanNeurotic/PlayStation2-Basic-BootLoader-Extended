@@ -97,8 +97,8 @@ EE_ASM_DIR := $(OUTDIR)/asm/
 DEVICE_LIST := HDD MMCE MX4SIO USB XFROM
 MODE_LABEL = $(strip $(if $(filter 1,$(2)),runtime$(if $(filter 1,$(1)),_chainload,),$(if $(filter 1,$(1)),chainload,normal)))
 GLOBAL_MODE = $(call MODE_LABEL,$(CHAINLOAD),$(RUNTIME))
-SELECTED_DEVICES = $(strip $(foreach dev,$(DEVICE_LIST),$(if $(filter 1,$($(dev))),$(dev),)))
-DEVICE_MODES = $(strip $(foreach dev,$(DEVICE_LIST),$(if $(filter 1,$($(dev))),$(dev):$(call MODE_LABEL,$($(dev)_CHAINLOAD),$($(dev)_RUNTIME)),)))
+SELECTED_DEVICES = $(strip $(foreach dev,$(DEVICE_LIST),$(if $(or $(filter 1,$($(dev))),$(filter 1,$($(dev)_RUNTIME))),$(dev),)))
+DEVICE_MODES = $(strip $(foreach dev,$(DEVICE_LIST),$(if $(or $(filter 1,$($(dev))),$(filter 1,$($(dev)_RUNTIME))),$(dev):$(call MODE_LABEL,$($(dev)_CHAINLOAD),$($(dev)_RUNTIME)),)))
 
 # ---{ VARIANT ENUMERATION SUPPORT }--- #
 # Invalid combinations expressed as pairs for validation and automatic matrix pruning

@@ -19,12 +19,29 @@ def main():
         {"name": "XFROM", "enable": "XFROM", "chainload": "XFROM_CHAINLOAD", "runtime": "XFROM_RUNTIME"},
     ]
 
+    invalid_pairs = [
+        ("MMCE", "MX4SIO"),
+        ("MMCE", "MX4SIO_RUNTIME"),
+        ("MMCE_RUNTIME", "MX4SIO"),
+        ("MMCE_RUNTIME", "MX4SIO_RUNTIME"),
+        ("MMCE", "MMCE_RUNTIME"),
+        ("MX4SIO", "MX4SIO_RUNTIME"),
+        ("UDPTTY", "PPCTTY"),
+        ("XFROM", "XFROM_RUNTIME"),
+    ]
+
     flag_order = ["CHAINLOAD", "RUNTIME"]
     for dev in devices:
         flag_order.append(dev["enable"])
         flag_order.append(dev["chainload"])
         if dev.get("runtime"):
             flag_order.append(dev["runtime"])
+
+    def conflicts(flags):
+        for a, b in invalid_pairs:
+            if flags.get(a) == 1 and flags.get(b) == 1:
+                return True
+        return False
 
     def render_flags(flags):
         return " ".join(f"{key}={flags[key]}" for key in flag_order if key in flags)
@@ -46,7 +63,8 @@ def main():
                 chainload_requested = False
                 for dev, (mode_name, mode_config) in zip(subset, mode_combo):
                     tokens.append(f"{dev['name'].lower()}-{mode_name}")
-                    flags[dev["enable"]] = 1
+                    if mode_name in ("normal", "chainload"):
+                        flags[dev["enable"]] = 1
                     if mode_config["chainload"]:
                         flags[dev["chainload"]] = 1
                         chainload_requested = True
@@ -58,6 +76,8 @@ def main():
                             flags["RUNTIME"] = 1
                 if chainload_requested:
                     flags["CHAINLOAD"] = 1
+                if conflicts(flags):
+                    continue
                 include.append({"name": "+".join(tokens), "flags": render_flags(flags)})
 
     print(json.dumps({"include": include}, sort_keys=False))
