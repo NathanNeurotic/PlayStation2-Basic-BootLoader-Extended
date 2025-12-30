@@ -129,6 +129,9 @@ jobs:
           path: release-artifacts
           pattern: ps2bbl-*
 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Archive artifacts
         run: |
           mkdir -p release-packages
@@ -138,17 +141,15 @@ jobs:
             tar -czf "release-packages/${base}.tar.gz" -C "$dir" .
           done
 
-      - name: Prepare release notes
+      - name: Generate release notes
         run: |
-          SHORT_SHA=${GITHUB_SHA::7}
-          {
-            echo "Automated CL prerelease for ${GITHUB_SHA}"
-            echo
-            echo "Artifacts:"
-            for file in release-packages/*; do
-              echo "- $(basename "$file")"
-            done
-          } > RELEASE_BODY.md
+          python3 scripts/generate_cl_release_notes.py \
+            --artifacts-dir release-artifacts \
+            --packages-dir release-packages \
+            --output RELEASE_BODY.md \
+            --release-sha "${GITHUB_SHA}"
+          echo "### Batch manifest overview" >> "$GITHUB_STEP_SUMMARY"
+          cat RELEASE_BODY.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish prerelease
         uses: softprops/action-gh-release@v2
@@ -157,7 +158,6 @@ jobs:
           name: CL prerelease ${{ github.sha }}
           body_path: RELEASE_BODY.md
           prerelease: true
-          overwrite: true
           files: release-packages/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
