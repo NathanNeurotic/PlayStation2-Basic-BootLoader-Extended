@@ -252,25 +252,38 @@ int PS2DiscBoot(int skip_PS2LOGO)
     }
 
     size = lseek(fd, 0, SEEK_END);
+    if (size < 0) {
+        scr_setfontcolor(0x0000ff);
+        scr_printf("%s: Can't seek SYSTEM.CNF\n", __func__);
+        sleep(3);
+        scr_clear();
+        BootError();
+    }
     lseek(fd, 0, SEEK_SET);
 
     if (size >= CNF_LEN_MAX)
         size = CNF_LEN_MAX - 1;
-
-    for (size_remaining = size; size_remaining > 0; size_remaining -= size_read) {
-        if ((size_read = read(fd, system_cnf, size_remaining)) <= 0) {
+    else if (size < 0)
+        size = 0;
+    for (size_remaining = size, size_read = 0; size_remaining > 0; size_remaining -= size_read) {
+        const int offset = size - size_remaining;
+        size_read = read(fd, system_cnf + offset, size_remaining);
+        if (size_read <= 0 || size_read > size_remaining || offset + size_read > size) {
             scr_setfontcolor(0x0000ff);
             scr_printf("%s: Can't read SYSTEM.CNF\n", __func__);
             sleep(3);
             scr_clear();
             BootError();
+            return 1;
         }
     }
     close(fd);
     DPRINTF("%s: readed SYSTEM.CNF. size was %d\n", __func__, size);
 
-    system_cnf[size] = '\0';
-    cnf_end = &system_cnf[size];
+    if (size >= 0) {
+        system_cnf[size] = '\0';
+        cnf_end = &system_cnf[size];
+    }
 
     // Parse SYSTEM.CNF
     cnf_start = system_cnf;
