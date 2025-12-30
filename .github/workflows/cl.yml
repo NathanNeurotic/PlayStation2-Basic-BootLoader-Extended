@@ -123,6 +123,11 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -138,6 +143,11 @@ jobs:
           echo "count=$count" >> "$GITHUB_OUTPUT"
           if [ "$count" = "0" ]; then
             echo "No matching artifacts were found for prerelease packaging." >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "Matched artifacts (${count}):"
+              printf "%s\n" "$artifacts"
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Download artifacts
@@ -146,7 +156,7 @@ jobs:
         with:
           path: release-artifacts
           pattern: ps2bbl-*
-          merge-multiple: true
+          merge-multiple: false
 
       - name: Ensure release directories
         run: mkdir -p release-artifacts release-packages
@@ -154,6 +164,8 @@ jobs:
       - name: Detect downloaded artifacts
         id: artifacts
         run: |
+          echo "Downloaded artifact layout:"
+          find release-artifacts -maxdepth 2 -print || true
           count=$(find release-artifacts -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
           echo "count=$count" >> "$GITHUB_OUTPUT"
           if [ "$count" = "0" ]; then
