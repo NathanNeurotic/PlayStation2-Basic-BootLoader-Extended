@@ -23,11 +23,30 @@ jobs:
 
       - name: Compile PS2 build
         run: |
-          make release COMMIT_HASH=${GITHUB_SHA::7} BINDIR=PS2BBL_CUSTOM_BUILD/ ${{ github.event.inputs.make_args }}
+          make release COMMIT_HASH=${GITHUB_SHA::7} BINDIR=PS2BBL_CUSTOM_BUILD/ps2/ ${{ github.event.inputs.make_args }}
 
       - name: Compile PSX build
         run: |
-          make release COMMIT_HASH=${GITHUB_SHA::7} BINDIR=PS2BBL_CUSTOM_BUILD/ PSX=1 ${{ github.event.inputs.make_args }}
+          make release COMMIT_HASH=${GITHUB_SHA::7} BINDIR=PS2BBL_CUSTOM_BUILD/psx/ PSX=1 ${{ github.event.inputs.make_args }}
+
+      - name: Build release notes (PS2/PSX)
+        run: |
+          NOTES=PS2BBL_CUSTOM_BUILD/RELEASE_NOTES.md
+          {
+            echo "# Release batch contents"
+            echo
+            echo "## PS2"
+            cat PS2BBL_CUSTOM_BUILD/ps2/BATCH_MANIFEST.md
+            echo
+            echo "## PSX"
+            cat PS2BBL_CUSTOM_BUILD/psx/BATCH_MANIFEST.md
+          } > "$NOTES"
+
+          echo "## PS2 batch manifest" >> $GITHUB_STEP_SUMMARY
+          cat PS2BBL_CUSTOM_BUILD/ps2/BATCH_MANIFEST.md >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## PSX batch manifest" >> $GITHUB_STEP_SUMMARY
+          cat PS2BBL_CUSTOM_BUILD/psx/BATCH_MANIFEST.md >> $GITHUB_STEP_SUMMARY
 
       - name: list
         run: |
