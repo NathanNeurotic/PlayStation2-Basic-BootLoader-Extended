@@ -95,7 +95,8 @@ FEATURE_INVALID_PAIRS := \
   MMCE_RUNTIME+MX4SIO_RUNTIME \
   MMCE+MMCE_RUNTIME \
   MX4SIO+MX4SIO_RUNTIME \
-  UDPTTY+PPCTTY
+  UDPTTY+PPCTTY \
+  XFROM+XFROM_RUNTIME
 
 # ---{ VERSIONING }--- #
 
@@ -171,6 +172,9 @@ ifneq ($(and $(filter 1,$(MX4SIO)),$(filter 1,$(MX4SIO_RUNTIME))),)
 endif
 ifneq ($(and $(filter 1,$(UDPTTY)),$(filter 1,$(PPCTTY))),)
   $(error UDPTTY cannot coexist with PPCTTY)
+endif
+ifneq ($(and $(filter 1,$(XFROM)),$(filter 1,$(XFROM_RUNTIME))),)
+  $(error XFROM cannot coexist with XFROM_RUNTIME)
 endif
 
 ifeq ($(CHAINLOAD), 1)
