@@ -1,7 +1,7 @@
 <br />
 <p align="center">
   <a href="https://israpps.github.io/PlayStation2-Basic-BootLoader/">
-    <img width="1536" height="1024" alt="PS2BBL Logo" src="https://github.com/user-attachments/assets/e5c5fe17-6fe8-43bd-a581-105d3954f6f5" />
+    <img width="1536" height="1024" alt="PS2BBL Logo" src="https://github.com/user-attachments/assets/02508d63-70aa-46a7-9a97-87de7cbe8c0d" />
   </a>
 </p>
 
@@ -32,11 +32,16 @@ The boot process is deterministic, with a clearly defined configuration search o
 ## Documentation
 
 Full original documentation is available on GitHub Pages:  
-👉 https://israpps.github.io/PlayStation2-Basic-BootLoader/
-This Repo is Forked from:
-👉 https://github.com/pcm720/PlayStation2-Basic-BootLoader
-This Repo's ReadMe.md has been modified from its original version to reflect this fork's documentation.
-As a result, it is recommended to familiarize yourself with this PS2BBLE documentation before continuing, even if you are familiar with PS2BBL.
+👉 https://israpps.github.io/PlayStation2-Basic-BootLoader/  
+
+This Repo is Forked from:  
+
+👉 https://github.com/pcm720/PlayStation2-Basic-BootLoader  
+
+This Repo's ReadMe.md has been modified from its original version to reflect this fork's documentation.  
+
+As a result, it is recommended to familiarize yourself with this PS2BBLE documentation before continuing, even if you are familiar with PS2BBL.  
+
 ---
 
 ## Configuration Model (Read This First)
