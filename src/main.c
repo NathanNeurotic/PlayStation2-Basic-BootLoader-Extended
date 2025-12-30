@@ -1165,7 +1165,7 @@ static int CheckHDD(void)
     return ret;
 }
 
-#ifdef HDD_RUNTIME
+#if defined(HDD_RUNTIME) && !defined(HDD)
 static int LoadHDDIRXExternal(void)
 {
     int ID, RET, HDDSTAT;
@@ -1230,7 +1230,6 @@ static int LoadHDDIRXExternal(void)
 int LoadHDDIRX(void)
 {
     static int hdd_stack_loaded = 0;
-    int HDDSTAT;
 
     config_path_enabled[SOURCE_HDD] = 0;
 
@@ -1238,6 +1237,7 @@ int LoadHDDIRX(void)
         return 0;
 #ifdef HDD
     int ID, RET;
+    int HDDSTAT;
     static const char hddarg[] = "-o"
                                  "\0"
                                  "4"
