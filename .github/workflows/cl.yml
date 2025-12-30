@@ -128,13 +128,17 @@ jobs:
         with:
           path: release-artifacts
           pattern: ps2bbl-*
+          merge-multiple: true
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Archive artifacts
         run: |
-          mkdir -p release-packages
+          mkdir -p release-artifacts release-packages
           for dir in release-artifacts/*; do
             [ -d "$dir" ] || continue
             base=$(basename "$dir")

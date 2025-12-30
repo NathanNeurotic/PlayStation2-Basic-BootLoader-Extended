@@ -70,6 +70,9 @@ def downgrade_headings(lines: Iterable[str], offset: int = 3) -> List[str]:
 
 def gather_packages(artifacts_dir: pathlib.Path, packages_dir: pathlib.Path) -> List[PackageInfo]:
     packages: List[PackageInfo] = []
+    if not artifacts_dir.exists():
+        return packages
+
     for batch_dir in sorted(p for p in artifacts_dir.iterdir() if p.is_dir()):
         variants: List[VariantInfo] = []
         for variant_archive in sorted(batch_dir.glob("*.tar.gz")):
@@ -87,6 +90,11 @@ def render_release_body(packages: List[PackageInfo], release_sha: str) -> List[s
         "",
         "Packages:",
     ]
+
+    if not packages:
+        lines.append("- _No artifacts were found to publish._")
+        return lines
+
     for package in packages:
         lines.append(f"- `{package.archive.name}` — {len(package.variants)} variant archive(s)")
 
