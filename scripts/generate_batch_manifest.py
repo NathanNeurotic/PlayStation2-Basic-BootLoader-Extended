@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import pathlib
+import tarfile
 from typing import Dict, Iterable, List, Tuple
 
 
@@ -40,8 +41,30 @@ def parse_config(config_path: pathlib.Path) -> Dict[str, str]:
     return config
 
 
+def _describe_archive(path: pathlib.Path) -> str:
+    try:
+        with tarfile.open(path, "r:*") as tf:
+            members = tf.getmembers()
+    except (tarfile.TarError, OSError) as exc:
+        return f"Archive (unable to read contents: {exc})"
+
+    total = len(members)
+    limit = 10
+    preview_parts = []
+    for member in members[:limit]:
+        label = member.name
+        if member.isdir():
+            label += "/"
+        preview_parts.append(f"{label} ({human_size(member.size)})")
+
+    suffix = "" if total <= limit else f", … (+{total - limit} more)"
+    return f"Archive ({total} entries): " + ", ".join(preview_parts) + suffix
+
+
 def describe_file(path: pathlib.Path) -> str:
     name = path.name
+    if tarfile.is_tarfile(path):
+        return _describe_archive(path)
     if name.lower() == "build_config.txt":
         return "Build configuration metadata for this batch"
     if name.startswith("COMPRESSED_"):
