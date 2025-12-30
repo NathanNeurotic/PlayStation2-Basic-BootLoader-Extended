@@ -15,7 +15,7 @@ jobs:
       matrix: ${{ steps.variants.outputs.matrix }}
     steps:
       - name: Install dependencies
-        run: apk add --no-cache build-base git p7zip
+        run: apk add --no-cache build-base git p7zip python3
 
       - uses: actions/checkout@v4
       - name: Configure git
@@ -38,7 +38,7 @@ jobs:
       matrix: ${{ fromJson(needs.enumerate.outputs.matrix) }}
     steps:
       - name: Install dependencies
-        run: apk add --no-cache build-base git p7zip
+        run: apk add --no-cache build-base git p7zip python3
 
       - uses: actions/checkout@v4
       - name: Configure git
