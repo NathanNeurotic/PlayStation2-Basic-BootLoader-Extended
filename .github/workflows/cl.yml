@@ -123,20 +123,32 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Download artifacts
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           path: release-artifacts
           pattern: ps2bbl-*
           merge-multiple: true
-          if-no-files-found: ignore
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Ensure release directories
+        run: mkdir -p release-artifacts release-packages
+
+      - name: Detect downloaded artifacts
+        id: artifacts
+        run: |
+          count=$(find release-artifacts -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          if [ "$count" = "0" ]; then
+            echo "No artifacts were downloaded; skipping packaging." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Archive artifacts
+        if: steps.artifacts.outputs.count != '0'
         run: |
-          mkdir -p release-artifacts release-packages
           for dir in release-artifacts/*; do
             [ -d "$dir" ] || continue
             base=$(basename "$dir")
