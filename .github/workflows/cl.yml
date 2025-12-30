@@ -8,37 +8,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  enumerate:
-    runs-on: ubuntu-latest
-    container: ps2dev/ps2dev:latest
-    outputs:
-      matrix: ${{ steps.variants.outputs.matrix }}
-    steps:
-      - name: Install dependencies
-        run: apk add --no-cache build-base git p7zip
-
-      - uses: actions/checkout@v4
-      - name: Configure git
-        run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git fetch --prune --unshallow || true
-
-      - name: Enumerate variants
-        id: variants
-        run: |
-          matrix=$(make list-variants)
-          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
-
   build:
-    needs: enumerate
     runs-on: ubuntu-latest
     container: ps2dev/ps2dev:latest
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.enumerate.outputs.matrix) }}
     steps:
       - name: Install dependencies
-        run: apk add --no-cache build-base git p7zip
+        run: apk add --no-cache build-base git p7zip python3 nodejs npm
 
       - uses: actions/checkout@v4
       - name: Configure git
@@ -50,19 +25,77 @@ jobs:
         id: meta
         run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
-      - name: Build ${{ matrix.name }}
-        run: |
-          SHORT_SHA=${{ steps.meta.outputs.short_sha }}
-          OUTDIR="build/variants/${{ matrix.name }}"
-          make VARIANT=${{ matrix.name }} ${{ matrix.flags }} OUTDIR=$OUTDIR COMMIT_HASH=$SHORT_SHA clean
-          make VARIANT=${{ matrix.name }} ${{ matrix.flags }} OUTDIR=$OUTDIR COMMIT_HASH=$SHORT_SHA all
-          test -f "$OUTDIR/BUILD_CONFIG.txt"
+      - name: Enumerate variants
+        run: make list-variants > variants.json
 
-      - name: Upload ${{ matrix.name }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ps2bbl-${{ matrix.name }}-${{ steps.meta.outputs.short_sha }}
-          path: build/variants/${{ matrix.name }}
+      - name: Build all variants
+        env:
+          SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, shlex, subprocess, sys
+
+          with open("variants.json", "r", encoding="utf-8") as fh:
+              variants = json.load(fh).get("include", [])
+
+          if not variants:
+              sys.exit("No variants produced by list-variants")
+
+          for entry in variants:
+              name = entry["name"]
+              flags = entry.get("flags", "").strip()
+              outdir = os.path.join("build", "variants", name)
+              base = ["make", f"VARIANT={name}", f"OUTDIR={outdir}", f"COMMIT_HASH={os.environ['SHORT_SHA']}"]
+              if flags:
+                  base += shlex.split(flags)
+              subprocess.run(base + ["clean"], check=True)
+              subprocess.run(base + ["all"], check=True)
+              cfg = os.path.join(outdir, "BUILD_CONFIG.txt")
+              if not os.path.isfile(cfg):
+                  sys.exit(f"Missing BUILD_CONFIG.txt for {name}")
+          PY
+
+      - name: Upload artifacts
+        env:
+          SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
+        run: |
+          set -euo pipefail
+          npm install @actions/artifact
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const artifact = require('@actions/artifact');
+
+          const root = path.join(process.cwd(), 'build', 'variants');
+          if (!fs.existsSync(root)) {
+            throw new Error('build/variants does not exist');
+          }
+
+          const client = artifact.create();
+
+          const walk = (dir) => {
+            return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+              const full = path.join(dir, entry.name);
+              return entry.isDirectory() ? walk(full) : [full];
+            });
+          };
+
+          (async () => {
+            const entries = fs.readdirSync(root, { withFileTypes: true }).filter((d) => d.isDirectory());
+            for (const entry of entries) {
+              const variantRoot = path.join(root, entry.name);
+              const files = walk(variantRoot);
+              if (!files.length) continue;
+              await client.uploadArtifact(`ps2bbl-${entry.name}-${process.env.SHORT_SHA}`, files, variantRoot, {
+                continueOnError: false
+              });
+            }
+          })().catch((err) => {
+            console.error(err);
+            process.exit(1);
+          });
+          NODE
 
   prerelease:
     needs: build
