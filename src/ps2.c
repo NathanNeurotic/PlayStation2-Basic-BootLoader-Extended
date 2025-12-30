@@ -266,7 +266,7 @@ int PS2DiscBoot(int skip_PS2LOGO)
     else if (size < 0)
         size = 0;
     for (size_remaining = size; size_remaining > 0; size_remaining -= size_read) {
-        size_read = read(fd, system_cnf, size_remaining);
+        size_read = read(fd, system_cnf + (size - size_remaining), size_remaining);
         if (size_read <= 0 || size_read > size_remaining) {
             scr_setfontcolor(0x0000ff);
             scr_printf("%s: Can't read SYSTEM.CNF\n", __func__);
