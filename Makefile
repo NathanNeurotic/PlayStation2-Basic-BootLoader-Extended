@@ -94,6 +94,7 @@ else
 endif
 EE_OBJS_DIR := $(OUTDIR)/obj/
 EE_ASM_DIR := $(OUTDIR)/asm/
+BATCH_MANIFEST = $(OUTDIR)/BATCH_MANIFEST.md
 DEVICE_LIST := HDD MMCE MX4SIO USB XFROM
 MODE_LABEL = $(strip $(if $(filter 1,$(2)),runtime$(if $(filter 1,$(1)),_chainload,),$(if $(filter 1,$(1)),chainload,normal)))
 GLOBAL_MODE = $(call MODE_LABEL,$(CHAINLOAD),$(RUNTIME))
@@ -409,7 +410,7 @@ ifeq ($(PROHBIT_DVD_0100),1)
 endif
 
 # ---{ RECIPES }--- #
-.PHONY: greeting debug all clean kelf packed release variants list-variants
+.PHONY: greeting debug all clean kelf packed release variants list-variants batch-notes
 .ONESHELL: list-variants variants
 
 all: $(EE_BIN) $(BUILD_CONFIG)
@@ -430,10 +431,11 @@ greeting:
 
 release: clean $(EE_BIN_PACKED) $(BUILD_CONFIG)
 	@rm -f $(EE_BIN_STRIPPED)
+	@$(MAKE) --no-print-directory batch-notes
 	@echo "$$HEADER"
 
 clean:
-	@rm -rf $(EE_BIN) $(EE_BIN_STRIPPED) $(EE_BIN_ENCRYPTED) $(EE_BIN_PACKED) $(BUILD_CONFIG)
+	@rm -rf $(EE_BIN) $(EE_BIN_STRIPPED) $(EE_BIN_ENCRYPTED) $(EE_BIN_PACKED) $(BUILD_CONFIG) $(BATCH_MANIFEST)
 	@rm -rf $(EE_OBJS_DIR) $(EE_ASM_DIR)
 
 $(EE_BIN_STRIPPED): $(EE_BIN)
@@ -506,6 +508,9 @@ ifneq ($(VERBOSE),1)
 endif
 	$(EE_AS) $(EE_ASFLAGS) $< -o $@
 
+batch-notes: $(EE_BIN_PACKED) $(BUILD_CONFIG)
+	@python3 scripts/generate_batch_manifest.py --outdir "$(OUTDIR)" --dest "$(BATCH_MANIFEST)" --name "$(VARIANT)"
+
 list-variants:
 	@python3 scripts/list_variants.py
 
@@ -524,6 +529,7 @@ variants:
 			subprocess.run(base + ["all"], check=True)
 			cfg = os.path.join(outdir, "BUILD_CONFIG.txt")
 			subprocess.run(["/bin/sh", "-c", f"test -f {cfg}"], check=True)
+			subprocess.run(base + ["batch-notes"], check=True)
 	PY
 #
 analize:
