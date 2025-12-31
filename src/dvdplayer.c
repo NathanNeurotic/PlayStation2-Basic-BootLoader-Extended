@@ -134,7 +134,8 @@ static int DVDPlayerUpdateCheck(int *pPort, int *pSlot, char *pVersion)
     sprintf(dvdplayer_e_ver, "%s/%s", OSDGetDVDPLExecFolder(), "dvdplayer-e.ver");
 
     for (port = 0; port < 2; port++) {
-        for (slot = 0; slot < 1; slot++) {
+        // Both memory card slots are supported for each port, mirroring the outer port loop.
+        for (slot = 0; slot < 2; slot++) {
             result = ReadFileFromMC(port, slot, dvdplayer_id, id, sizeof(id));
             if (result >= 0) {
                 if (result < sizeof(id)) // NULL-terminate, but truncate if too long
