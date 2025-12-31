@@ -1107,13 +1107,13 @@ int LookForBDMDevice(void)
 int LoadFIO(void)
 {
     int ID, RET;
-    ID = SifExecModuleBuffer(&iomanX_irx, size_iomanX_irx, 0, NULL, &RET);
+    ID = SifExecModuleBuffer(iomanX_irx, size_iomanX_irx, 0, NULL, &RET);
     DPRINTF(" [IOMANX]: ret=%d, ID=%d\n", RET, ID);
     if (ID < 0 || RET == 1)
         return -1;
 
     /* FILEXIO.IRX */
-    ID = SifExecModuleBuffer(&fileXio_irx, size_fileXio_irx, 0, NULL, &RET);
+    ID = SifExecModuleBuffer(fileXio_irx, size_fileXio_irx, 0, NULL, &RET);
     DPRINTF(" [FILEXIO]: ret=%d, ID=%d\n", RET, ID);
     if (ID < 0 || RET == 1)
         return -2;
@@ -1129,7 +1129,7 @@ int loadDEV9(void)
 {
     if (!dev9_loaded) {
         int ID, RET;
-        ID = SifExecModuleBuffer(&ps2dev9_irx, size_ps2dev9_irx, 0, NULL, &RET);
+        ID = SifExecModuleBuffer(ps2dev9_irx, size_ps2dev9_irx, 0, NULL, &RET);
         DPRINTF("[DEV9]: ret=%d, ID=%d\n", RET, ID);
         if (ID < 0 && RET == 1) // ID smaller than 0: issue reported from modload | RET == 1: driver returned no resident end
             return 0;
@@ -1143,13 +1143,13 @@ int loadDEV9(void)
 void loadUDPTTY()
 {
     int ID, RET;
-    ID = SifExecModuleBuffer(&netman_irx, size_netman_irx, 0, NULL, &RET);
+    ID = SifExecModuleBuffer(netman_irx, size_netman_irx, 0, NULL, &RET);
     DPRINTF(" [NETMAN]: ret=%d, ID=%d\n", RET, ID);
-    ID = SifExecModuleBuffer(&smap_irx, size_smap_irx, 0, NULL, &RET);
+    ID = SifExecModuleBuffer(smap_irx, size_smap_irx, 0, NULL, &RET);
     DPRINTF(" [SMAP]: ret=%d, ID=%d\n", RET, ID);
-    ID = SifExecModuleBuffer(&ps2ip_irx, size_ps2ip_irx, 0, NULL, &RET);
+    ID = SifExecModuleBuffer(ps2ip_irx, size_ps2ip_irx, 0, NULL, &RET);
     DPRINTF(" [PS2IP]: ret=%d, ID=%d\n", RET, ID);
-    ID = SifExecModuleBuffer(&udptty_irx, size_udptty_irx, 0, NULL, &RET);
+    ID = SifExecModuleBuffer(udptty_irx, size_udptty_irx, 0, NULL, &RET);
     DPRINTF(" [UDPTTY]: ret=%d, ID=%d\n", RET, ID);
     sleep(3);
 }
@@ -1251,7 +1251,7 @@ int LoadHDDIRX(void)
     if (!loadDEV9())
         return -1;
 
-    ID = SifExecModuleBuffer(&poweroff_irx, size_poweroff_irx, 0, NULL, &RET);
+    ID = SifExecModuleBuffer(poweroff_irx, size_poweroff_irx, 0, NULL, &RET);
     DPRINTF(" [POWEROFF]: ret=%d, ID=%d\n", RET, ID);
     if (ID < 0 || RET == 1)
         return -2;
@@ -1260,12 +1260,12 @@ int LoadHDDIRX(void)
     poweroffSetCallback(&poweroffCallback, NULL);
     DPRINTF("PowerOFF Callback installed...\n");
 
-    ID = SifExecModuleBuffer(&ps2atad_irx, size_ps2atad_irx, 0, NULL, &RET);
+    ID = SifExecModuleBuffer(ps2atad_irx, size_ps2atad_irx, 0, NULL, &RET);
     DPRINTF(" [ATAD]: ret=%d, ID=%d\n", RET, ID);
     if (ID < 0 || RET == 1)
         return -3;
 
-    ID = SifExecModuleBuffer(&ps2hdd_irx, size_ps2hdd_irx, sizeof(hddarg), hddarg, &RET);
+    ID = SifExecModuleBuffer(ps2hdd_irx, size_ps2hdd_irx, sizeof(hddarg), hddarg, &RET);
     DPRINTF(" [PS2HDD]: ret=%d, ID=%d\n", RET, ID);
     if (ID < 0 || RET == 1)
         return -4;
@@ -1276,7 +1276,7 @@ int LoadHDDIRX(void)
 
     /* PS2FS.IRX */
     if (hdd_usable) {
-        ID = SifExecModuleBuffer(&ps2fs_irx, size_ps2fs_irx, 0, NULL, &RET);
+        ID = SifExecModuleBuffer(ps2fs_irx, size_ps2fs_irx, 0, NULL, &RET);
         DPRINTF(" [PS2FS]: ret=%d, ID=%d\n", RET, ID);
         if (ID < 0 || RET == 1)
             return -5;
