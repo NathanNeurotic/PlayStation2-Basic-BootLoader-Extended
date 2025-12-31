@@ -88,6 +88,7 @@ static int hdd_runtime_started = 0;
 static char *trim_ascii_whitespace(char *value)
 {
     char *start, *end;
+    size_t len;
 
     if (value == NULL)
         return NULL;
@@ -96,7 +97,14 @@ static char *trim_ascii_whitespace(char *value)
     while (*start != '\0' && isspace((unsigned char)*start))
         start++;
 
-    end = start + strlen(start);
+    len = strnlen(start, CNF_LEN_MAX);
+    if (len == CNF_LEN_MAX) {
+        DPRINTF("trim_ascii_whitespace: value length exceeded %u, forcing termination\n", CNF_LEN_MAX);
+        start[CNF_LEN_MAX - 1] = '\0';
+        len = CNF_LEN_MAX - 1;
+    }
+
+    end = start + len;
     while (end > start && isspace((unsigned char)*(end - 1)))
         end--;
     *end = '\0';
@@ -106,13 +114,19 @@ static char *trim_ascii_whitespace(char *value)
 
 static int is_string_blank(const char *value)
 {
+    size_t len, i;
+
     if (value == NULL)
         return 1;
 
-    while (*value != '\0') {
-        if (!isspace((unsigned char)*value))
+    len = strnlen(value, CNF_LEN_MAX);
+    if (len == CNF_LEN_MAX) {
+        DPRINTF("is_string_blank: encountered unterminated string (>= %u chars)\n", CNF_LEN_MAX);
+    }
+
+    for (i = 0; i < len; i++) {
+        if (!isspace((unsigned char)value[i]))
             return 0;
-        value++;
     }
 
     return 1;
