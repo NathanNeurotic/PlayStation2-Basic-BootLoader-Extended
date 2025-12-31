@@ -1,5 +1,4 @@
 #include <errno.h>
-#include <ctype.h>
 
 #include "main.h"
 // --------------- glob stuff --------------- //
@@ -85,6 +84,21 @@ static int xfrom_started = 0;
 static int hdd_runtime_started = 0;
 #endif
 
+static int is_ascii_space(int c)
+{
+    switch (c) {
+        case ' ':
+        case '\t':
+        case '\n':
+        case '\r':
+        case '\f':
+        case '\v':
+            return 1;
+        default:
+            return 0;
+    }
+}
+
 static char *trim_ascii_whitespace(char *value)
 {
     char *start, *end;
@@ -94,7 +108,7 @@ static char *trim_ascii_whitespace(char *value)
         return NULL;
 
     start = value;
-    while (*start != '\0' && isspace((unsigned char)*start))
+    while (*start != '\0' && is_ascii_space((unsigned char)*start))
         start++;
 
     len = strnlen(start, CNF_LEN_MAX);
@@ -105,7 +119,7 @@ static char *trim_ascii_whitespace(char *value)
     }
 
     end = start + len;
-    while (end > start && isspace((unsigned char)*(end - 1)))
+    while (end > start && is_ascii_space((unsigned char)*(end - 1)))
         end--;
     *end = '\0';
 
@@ -125,7 +139,7 @@ static int is_string_blank(const char *value)
     }
 
     for (i = 0; i < len; i++) {
-        if (!isspace((unsigned char)value[i]))
+        if (!is_ascii_space((unsigned char)value[i]))
             return 0;
     }
 
