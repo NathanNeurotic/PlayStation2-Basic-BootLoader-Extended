@@ -19,7 +19,7 @@ typedef struct
     int TRAYEJECT;
     int LOGO_DISP; //0: NO, 1: Only Console info, any other value: YES
 } CONFIG;
-CONFIG GLOBCFG;
+CONFIG GLOBCFG = {0};
 
 static const char *const DEFAULT_CONFIG_PATHS[SOURCE_COUNT] = {
     "CONFIG.INI",
@@ -34,7 +34,7 @@ static const char *const DEFAULT_CONFIG_PATHS[SOURCE_COUNT] = {
     "mass:/PS2BBL/CONFIG.INI",
     "",
 };
-const char *CONFIG_PATHS[SOURCE_COUNT];
+const char *CONFIG_PATHS[SOURCE_COUNT] = {0};
 
 static int LocateExternalIRXPath(const char *filename, char *resolved_path, size_t resolved_size);
 
@@ -56,13 +56,13 @@ const char *const DEFPATH[] = {
     "mc?:/APPS/ULE.ELF",
 };
 
-char *EXECPATHS[3];
+char *EXECPATHS[3] = {0};
 u8 ROMVER[16];
 int PAD = 0;
 static int config_source = SOURCE_INVALID;
 char *config_buf = NULL; // pointer to allocated config file
-static char *keypath_store[17][3];
-static u8 keypath_allocated[17][3];
+static char *keypath_store[17][3] = {0};
+static u8 keypath_allocated[17][3] = {0};
 static int config_enable_hdd = 0;
 static u8 config_path_enabled[SOURCE_COUNT];
 #if defined(MX4SIO) || defined(MX4SIO_RUNTIME)
@@ -83,6 +83,68 @@ static int xfrom_started = 0;
 #if defined(HDD_RUNTIME) && !defined(HDD)
 static int hdd_runtime_started = 0;
 #endif
+
+static int is_ascii_space(int c)
+{
+    switch (c) {
+        case ' ':
+        case '\t':
+        case '\n':
+        case '\r':
+        case '\f':
+        case '\v':
+            return 1;
+        default:
+            return 0;
+    }
+}
+
+static char *trim_ascii_whitespace(char *value)
+{
+    char *start, *end;
+    size_t len;
+
+    if (value == NULL)
+        return NULL;
+
+    start = value;
+    while (*start != '\0' && is_ascii_space((unsigned char)*start))
+        start++;
+
+    len = strnlen(start, CNF_LEN_MAX);
+    if (len == CNF_LEN_MAX) {
+        DPRINTF("trim_ascii_whitespace: value length exceeded %u, forcing termination\n", CNF_LEN_MAX);
+        start[CNF_LEN_MAX - 1] = '\0';
+        len = CNF_LEN_MAX - 1;
+    }
+
+    end = start + len;
+    while (end > start && is_ascii_space((unsigned char)*(end - 1)))
+        end--;
+    *end = '\0';
+
+    return start;
+}
+
+static int is_string_blank(const char *value)
+{
+    size_t len, i;
+
+    if (value == NULL)
+        return 1;
+
+    len = strnlen(value, CNF_LEN_MAX);
+    if (len == CNF_LEN_MAX) {
+        DPRINTF("is_string_blank: encountered unterminated string (>= %u chars)\n", CNF_LEN_MAX);
+    }
+
+    for (i = 0; i < len; i++) {
+        if (!is_ascii_space((unsigned char)value[i]))
+            return 0;
+    }
+
+    return 1;
+}
 
 static void ResetKeypathStorage(void)
 {
@@ -125,7 +187,7 @@ static int StoreKeypathCopy(int key_index, int path_index, const char *value)
 {
     char *copy;
 
-    if (value == NULL)
+    if (value == NULL || value[0] == '\0')
         return -1;
 
     copy = strdup(value);
@@ -578,6 +640,9 @@ int main(int argc, char *argv[])
                 char TMP[64];
                 for (var_cnt = 0; get_CNF_string(&CNFBUFF, &name, &value); var_cnt++) {
                     // DPRINTF("reading entry %d", var_cnt);
+                    value = trim_ascii_whitespace(value);
+                    if (value == NULL)
+                        continue;
                     if (!strcmp("OSDHISTORY_READ", name)) {
                         GLOBCFG.OSDHISTORY_READ = atoi(value);
                         continue;
@@ -589,6 +654,11 @@ int main(int argc, char *argv[])
                             continue;
                         }
                         char *resolved_path = CheckPath(path_copy);
+                        if (resolved_path == NULL || is_string_blank(resolved_path)) {
+                            DPRINTF("Ignoring blank IRX path for %s\n", name);
+                            free(path_copy);
+                            continue;
+                        }
                         j = SifLoadStartModule(resolved_path, 0, NULL, &x);
                         DPRINTF("# Loaded IRX from config entry [%s] -> [%s]: ID=%d, ret=%d\n", name, resolved_path, j, x);
                         free(path_copy);
@@ -636,6 +706,10 @@ int main(int argc, char *argv[])
                     }
 #endif
                     if (!strncmp("LK_", name, 3)) {
+                        if (is_string_blank(value)) {
+                            DPRINTF("Ignoring blank keypath for %s\n", name);
+                            continue;
+                        }
                         if (!strncmp(value, RUNKELF_PREFIX, RUNKELF_PREFIX_LEN)) {
                             const char *kelf_path = value + RUNKELF_PREFIX_LEN;
                             size_t kelf_path_len = strlen(kelf_path);
@@ -818,13 +892,17 @@ int main(int argc, char *argv[])
                 DPRINTF("PAD detected\n");
                 // if button detected, copy path to corresponding index
                 for (j = 0; j < 3; j++) {
-                    EXECPATHS[j] = CheckPath(GLOBCFG.KEYPATHS[x + 1][j]);
-                    if (exist(EXECPATHS[j])) {
+                    char *candidate = GLOBCFG.KEYPATHS[x + 1][j];
+                    EXECPATHS[j] = NULL;
+                    if (is_string_blank(candidate))
+                        continue;
+                    EXECPATHS[j] = CheckPath(candidate);
+                    if (EXECPATHS[j] != NULL && exist(EXECPATHS[j])) {
                         scr_setfontcolor(0x00ff00);
                         scr_printf("\tLoading %s\n", EXECPATHS[j]);
                         CleanUp();
                         RunLoaderElf(EXECPATHS[j], MPART);
-                    } else {
+                    } else if (EXECPATHS[j] != NULL) {
                         scr_setfontcolor(0x00ffff);
                         DPRINTF("%s not found\n", EXECPATHS[j]);
                         scr_setfontcolor(0xffffff);
@@ -838,13 +916,17 @@ int main(int argc, char *argv[])
     DPRINTF("Wait time consummed. running AUTO entry\n");
     TimerEnd();
     for (j = 0; j < 3; j++) {
-        EXECPATHS[j] = CheckPath(GLOBCFG.KEYPATHS[0][j]);
-        if (exist(EXECPATHS[j])) {
+        char *candidate = GLOBCFG.KEYPATHS[0][j];
+        EXECPATHS[j] = NULL;
+        if (is_string_blank(candidate))
+            continue;
+        EXECPATHS[j] = CheckPath(candidate);
+        if (EXECPATHS[j] != NULL && exist(EXECPATHS[j])) {
             scr_setfontcolor(0x00ff00);
             scr_printf("\tLoading %s\n", EXECPATHS[j]);
             CleanUp();
             RunLoaderElf(EXECPATHS[j], MPART);
-        } else {
+        } else if (EXECPATHS[j] != NULL) {
             scr_printf("%s %-15s\r", EXECPATHS[j], "not found");
         }
     }
@@ -931,6 +1013,8 @@ char *CheckPath(char *path)
         return NULL;
 
     path_len = strlen(path);
+    if (path_len == 0)
+        return NULL;
 
     if (path[0] == '$') // we found a program command
     {
