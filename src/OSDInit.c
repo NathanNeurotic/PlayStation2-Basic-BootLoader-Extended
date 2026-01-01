@@ -174,6 +174,7 @@ static int GetConsoleRegion(void)
                     ConsoleRegion = CONSOLE_REGION_EUROPE;
                     break;
                 case 'H':
+                    /* fall through */
                 case 'A':
                     ConsoleRegion = CONSOLE_REGION_USA;
                     break;
@@ -331,6 +332,7 @@ int OSDIsLanguageValid(int region, int language)
             return (language == LANGUAGE_ENGLISH || language == LANGUAGE_TRAD_CHINESE) ? language : -1;
         case OSD_REGION_USA:
         case OSD_REGION_EUROPE:
+            /* fall through */
         default:
             return (language <= LANGUAGE_PORTUGUESE && region > OSD_REGION_JAPAN) ? language : -1;
     }
