@@ -59,6 +59,13 @@ const char *const DEFPATH[] = {
 char *EXECPATHS[3] = {0};
 u8 ROMVER[16];
 int PAD = 0;
+#ifdef DEV9
+int dev9_loaded = 0;
+#endif
+#if defined(HDD) || defined(HDD_RUNTIME)
+char PART[128] = "\0";
+int HDD_USABLE = 0;
+#endif
 static int config_source = SOURCE_INVALID;
 char *config_buf = NULL; // pointer to allocated config file
 static char *keypath_store[17][3] = {0};
