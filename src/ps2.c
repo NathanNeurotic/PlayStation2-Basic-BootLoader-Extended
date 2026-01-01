@@ -58,8 +58,6 @@ static const char *CNFAdvanceLine(const char *start, const char *end)
     return NULL;
 }
 
-#define CNF_PATH_LEN_MAX 64
-
 static const char *CNFGetKey(const char *line, char *key)
 {
     int i;
