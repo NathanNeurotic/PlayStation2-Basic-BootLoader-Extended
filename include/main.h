@@ -48,7 +48,7 @@
 #endif
 
 #ifdef DEV9
-static int dev9_loaded = 0;
+extern int dev9_loaded;
 int loadDEV9(void);
 #endif
 
@@ -102,8 +102,8 @@ void loadUDPTTY();
 #include <io_common.h>
 #include <assert.h>
 #include <libpwroff.h>
-char PART[128] = "\0";
-int HDD_USABLE = 0;
+extern char PART[128];
+extern int HDD_USABLE;
 #define MPART PART
 int LoadHDDIRX(void);             // Load HDD IRXes
 int MountParty(const char *path); ///processes strings in the format `hdd0:/$PARTITION:pfs:$PATH_TO_FILE/` to mount partition
