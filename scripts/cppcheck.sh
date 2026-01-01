@@ -14,6 +14,7 @@ INCLUDE_PATHS=(
   "-I${PS2SDK_ROOT}/common/include"
   "-I${PROJECT_ROOT}/include"
   "-I${PROJECT_ROOT}/tools/codacy_shims/ps2sdk"
+  "-I${PROJECT_ROOT}/tools/codacy_shims/stdlib"
 )
 
 exec cppcheck \
