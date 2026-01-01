@@ -80,8 +80,9 @@ void OSDInitSystemPaths(void)
     int region;
     const char regions[CONSOLE_REGION_COUNT] = {'I', 'A', 'E', 'C'};
 
+    /* OSDGetConsoleRegion() clamps invalid regions to the default. */
     region = OSDGetConsoleRegion();
-    if (region >= 0 && region < CONSOLE_REGION_COUNT) {
+    if (region < CONSOLE_REGION_COUNT) {
         SystemDataFolder[1] = regions[region];
         SystemExecFolder[1] = regions[region];
         DVDPLExecFolder[1] = regions[region];
