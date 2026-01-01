@@ -1058,15 +1058,17 @@ char *CheckPath(char *path)
 #endif
 #if defined(HDD) || defined(HDD_RUNTIME)
     } else if (!strncmp("hdd", path, 3)) {
-        if (MountParty(path) < 0) {
+        int mount_res = MountParty(path);
+
+        if (mount_res < 0) {
             DPRINTF("-{%s}-\n", path);
             return path;
         } else {
-            DPRINTF("--{%s}--{%s}\n", path, strstr(path, "pfs:"));
-            return strstr(path, "pfs:");
+            char *mounted_path = strstr(path, "pfs:");
+
+            DPRINTF("--{%s}--{%s}\n", path, mounted_path);
+            return mounted_path;
         } // leave path as pfs:/blabla
-        if (!MountParty(path))
-            return strstr(path, "pfs:");
 #endif
 #if defined(MX4SIO) || defined(MX4SIO_RUNTIME)
     } else if ((path_len >= 6) && !strncmp("massX:", path, 6)) {
@@ -1156,6 +1158,10 @@ int LoadUSBIRX(void)
 
         retries--;
     }
+
+    if (ret != 0)
+        return -5;
+
     return 0;
 }
 
