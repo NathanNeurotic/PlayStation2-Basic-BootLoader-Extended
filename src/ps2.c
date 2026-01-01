@@ -15,6 +15,9 @@
 #include "OSDHistory.h"
 #include "debugprintf.h"
 
+#define CNF_PATH_LEN_MAX 64
+#define CNF_LEN_MAX      1024
+
 void CleanUp(void);
 void BootError(void)
 {
@@ -25,9 +28,6 @@ void BootError(void)
     SifExitCmd();
     ExecOSD(1, args);
 }
-
-#define CNF_PATH_LEN_MAX 64
-#define CNF_LEN_MAX      1024
 
 static const char *CNFGetToken(const char *cnf, const char *key)
 {
