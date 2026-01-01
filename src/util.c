@@ -128,7 +128,17 @@ char **str_split(char *a_str, const char a_delim)
 
         while (token) {
             assert(idx < count);
-            *(result + idx++) = strdup(token);
+            char *copy = strdup(token);
+
+            if (copy == NULL) {
+                for (size_t cleanup_idx = 0; cleanup_idx < idx; cleanup_idx++) {
+                    free(*(result + cleanup_idx));
+                }
+                free(result);
+                return NULL;
+            }
+
+            *(result + idx++) = copy;
             token = strtok(0, delim);
         }
         assert(idx == count - 1);
