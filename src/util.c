@@ -16,9 +16,8 @@ int exist(const char *filepath)
 {
     if (filepath == NULL)
         return 0;
-    int fdn;
 
-    fdn = open(filepath, O_RDONLY);
+    const int fdn = open(filepath, O_RDONLY);
     if (fdn < 0)
         return 0;
 
