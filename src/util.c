@@ -132,8 +132,10 @@ char **str_split(char *a_str, const char a_delim)
             if (copy == NULL) {
                 for (size_t cleanup_idx = 0; cleanup_idx < idx; cleanup_idx++) {
                     free(*(result + cleanup_idx));
+                    *(result + cleanup_idx) = NULL;
                 }
                 free(result);
+                result = NULL;
                 return NULL;
             }
 
@@ -231,8 +233,10 @@ cleanup:
     if (tokens) {
         for (int idx = 0; *(tokens + idx); idx++) {
             free(*(tokens + idx));
+            *(tokens + idx) = NULL;
         }
         free(tokens);
+        tokens = NULL;
     }
 
     return ret;

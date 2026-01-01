@@ -198,6 +198,7 @@ static int StoreKeypathCopy(int key_index, int path_index, const char *value)
 
     if (keypath_allocated[key_index][path_index] && keypath_store[key_index][path_index]) {
         free(keypath_store[key_index][path_index]);
+        keypath_store[key_index][path_index] = NULL;
     }
 
     keypath_store[key_index][path_index] = copy;
@@ -625,10 +626,12 @@ int main(int argc, char *argv[])
         char *T = CheckPath(config_path);
         if (T == NULL) {
             free(config_path);
+            config_path = NULL;
             continue;
         }
         fp = fopen(T, "r");
         free(config_path);
+        config_path = NULL;
         if (fp != NULL) {
             config_source = x;
             break;
@@ -672,11 +675,13 @@ int main(int argc, char *argv[])
                         if (resolved_path == NULL || is_string_blank(resolved_path)) {
                             DPRINTF("Ignoring blank IRX path for %s\n", name);
                             free(path_copy);
+                            path_copy = NULL;
                             continue;
                         }
                         j = SifLoadStartModule(resolved_path, 0, NULL, &x);
                         DPRINTF("# Loaded IRX from config entry [%s] -> [%s]: ID=%d, ret=%d\n", name, resolved_path, j, x);
                         free(path_copy);
+                        path_copy = NULL;
                         continue;
                     }
                     if (!strcmp("SKIP_PS2LOGO", name)) {
@@ -1409,7 +1414,7 @@ int MountParty(const char *path)
     BUF = strdup(path); //use strdup, otherwise, path will become `hdd0:`
     if (BUF == NULL) {
         DPRINTF("ERROR: could not duplicate path '%s'\n", path);
-        return ret;
+        goto cleanup;
     }
     char MountPoint[sizeof(PART)];
     int mountInfoRet = getMountInfo(BUF, NULL, 0, MountPoint, sizeof(MountPoint), NULL, 0);
@@ -1422,8 +1427,8 @@ int MountParty(const char *path)
                 PART[0] = '\0';
                 ret = -ENAMETOOLONG;
             } else {
-                free(BUF);
-                return 0;
+                ret = 0;
+                goto cleanup;
             }
         }
     } else {
@@ -1432,8 +1437,11 @@ int MountParty(const char *path)
             DPRINTF("Path components exceed buffer limits and were rejected\n");
         PART[0] = '\0';
     }
-    if (BUF != NULL)
+cleanup:
+    if (BUF != NULL) {
         free(BUF);
+        BUF = NULL;
+    }
     return ret;
 }
 
