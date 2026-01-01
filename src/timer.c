@@ -54,6 +54,7 @@ static u64 TimerInterruptCount = 0;
 // Timer Interrupt
 int TimerInterrupt(int a)
 {
+    (void)a;
     TimerInterruptCount++;
     *T0_MODE |= (1 << 11);
     return -1;
@@ -73,7 +74,8 @@ void TimerInit(void)
 // Timer Count
 u64 Timer(void)
 {
-    u64 ticks = (*T0_COUNT + (TimerInterruptCount << 16)) * (1000.0F / (147456000.0F / 256.0F));
+    static const u32 TIMER_TICKS_PER_MILLISECOND = 576; // Derived from (147456000 / 256) / 1000
+    u64 ticks = (*T0_COUNT + (TimerInterruptCount << 16)) / TIMER_TICKS_PER_MILLISECOND;
     return ticks;
 }
 //--------------------------------------------------------------
