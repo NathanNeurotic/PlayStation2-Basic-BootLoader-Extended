@@ -1,9 +1,23 @@
 #ifndef PS2SDK_SHIM_H
 #define PS2SDK_SHIM_H
 
+#if defined(__has_include) && __has_include(<stdbool.h>)
 #include <stdbool.h>
+#else
+#include "../stdlib/stdbool.h"
+#endif
+
+#if defined(__has_include) && __has_include(<stddef.h>)
 #include <stddef.h>
+#else
+#include "../stdlib/stddef.h"
+#endif
+
+#if defined(__has_include) && __has_include(<stdint.h>)
 #include <stdint.h>
+#else
+#include "../stdlib/stdint.h"
+#endif
 
 typedef uint8_t u8;
 typedef uint16_t u16;
