@@ -12,7 +12,7 @@
 
 #include "util.h"
 
-int exist(char *filepath)
+int exist(const char *filepath)
 {
     if (filepath == NULL)
         return 0;
