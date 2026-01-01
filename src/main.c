@@ -225,6 +225,12 @@ static void __attribute__((unused)) EnableConfigPath(CONFIG_SOURCES_ID source)
         config_path_enabled[source] = 1;
 }
 
+static void DisableConfigPath(CONFIG_SOURCES_ID source)
+{
+    if (source < SOURCE_COUNT)
+        config_path_enabled[source] = 0;
+}
+
 static int IsConfigPathEnabled(CONFIG_SOURCES_ID source)
 {
     if (source >= SOURCE_COUNT)
@@ -295,6 +301,18 @@ static int StartMX4SIO(void)
 #endif
 
 #if defined(MMCE) || defined(MMCE_RUNTIME)
+static void EnableMMCEPaths(void)
+{
+    EnableConfigPath(SOURCE_MMCE0);
+    EnableConfigPath(SOURCE_MMCE1);
+}
+
+static void DisableMMCEPaths(void)
+{
+    DisableConfigPath(SOURCE_MMCE0);
+    DisableConfigPath(SOURCE_MMCE1);
+}
+
 static int StartMMCE(void)
 {
     int err = -4;
@@ -309,8 +327,7 @@ static int StartMMCE(void)
         err = -1;
     } else {
         mmce_started = 1;
-        EnableConfigPath(SOURCE_MMCE0);
-        EnableConfigPath(SOURCE_MMCE1);
+        EnableMMCEPaths();
         return 0;
     }
 #endif
@@ -326,8 +343,7 @@ static int StartMMCE(void)
             err = -3;
         } else {
             mmce_started = 1;
-            EnableConfigPath(SOURCE_MMCE0);
-            EnableConfigPath(SOURCE_MMCE1);
+            EnableMMCEPaths();
             return 0;
         }
     }
@@ -463,8 +479,7 @@ int main(int argc, char *argv[])
         if (j < 0)
             DPRINTF(" [MMCEMAN] runtime enable failed (%d)\n", j);
     } else {
-        config_path_enabled[SOURCE_MMCE0] = 0;
-        config_path_enabled[SOURCE_MMCE1] = 0;
+        DisableMMCEPaths();
     }
 #endif
 
@@ -474,7 +489,7 @@ int main(int argc, char *argv[])
         if (j < 0)
             DPRINTF(" [MX4SIO_BD] runtime enable failed (%d)\n", j);
     } else {
-        config_path_enabled[SOURCE_MX4SIO] = 0;
+        DisableConfigPath(SOURCE_MX4SIO);
     }
 #endif
 
@@ -484,7 +499,7 @@ int main(int argc, char *argv[])
         if (j < 0)
             DPRINTF(" [XFROM] runtime enable failed (%d)\n", j);
     } else {
-        config_path_enabled[SOURCE_XFROM] = 0;
+        DisableConfigPath(SOURCE_XFROM);
     }
 #endif
 
@@ -799,7 +814,7 @@ int main(int argc, char *argv[])
             scr_setfontcolor(0xffffff);
         }
     } else {
-        config_path_enabled[SOURCE_MX4SIO] = 0;
+        DisableConfigPath(SOURCE_MX4SIO);
     }
 #endif
 #if defined(MMCE) || defined(MMCE_RUNTIME)
@@ -811,8 +826,7 @@ int main(int argc, char *argv[])
             scr_setfontcolor(0xffffff);
         }
     } else {
-        config_path_enabled[SOURCE_MMCE0] = 0;
-        config_path_enabled[SOURCE_MMCE1] = 0;
+        DisableMMCEPaths();
     }
 #endif
 #if defined(XFROM) || defined(XFROM_RUNTIME)
@@ -824,7 +838,7 @@ int main(int argc, char *argv[])
             scr_setfontcolor(0xffffff);
         }
     } else {
-        config_path_enabled[SOURCE_XFROM] = 0;
+        DisableConfigPath(SOURCE_XFROM);
     }
 #endif
 
@@ -1324,7 +1338,7 @@ int LoadHDDIRX(void)
 {
     static int hdd_stack_loaded = 0;
 
-    config_path_enabled[SOURCE_HDD] = 0;
+    DisableConfigPath(SOURCE_HDD);
 
     if (hdd_stack_loaded && hdd_usable)
         return 0;
