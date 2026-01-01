@@ -159,6 +159,9 @@ char **str_split(char *a_str, const char a_delim)
 */
 int getMountInfo(char *path, char *mountString, size_t mountStringSize, char *mountPoint, size_t mountPointSize, char *newCWD, size_t newCWDSize)
 {
+    if (path == NULL)
+        return -EINVAL;
+
     int i = 0;
     char **tokens = str_split(path, ':');
     int ret = -EINVAL;
