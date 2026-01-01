@@ -17,6 +17,7 @@ int get_CNF_string(char **CNF_p_p,
                    char **name_p_p,
                    char **value_p_p);
 
+#if defined(HDD) || defined(HDD_RUNTIME)
 /**
  * @brief  method returns 0 if it can extract needed info from path, otherwise a negative error code.
  * In case of success, it also updates mountString, mountPoint and newCWD parameters
@@ -32,3 +33,4 @@ int get_CNF_string(char **CNF_p_p,
  * @return 0 on success, negative error code on failure or truncation
 */
 int getMountInfo(char *path, char *mountString, size_t mountStringSize, char *mountPoint, size_t mountPointSize, char *newCWD, size_t newCWDSize);
+#endif
