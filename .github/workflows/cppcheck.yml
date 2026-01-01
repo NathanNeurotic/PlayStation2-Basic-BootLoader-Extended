@@ -1,0 +1,25 @@
+name: Static Analysis (cppcheck)
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  cppcheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: sudo apt-get update && sudo apt-get install -y cppcheck
+
+      - name: Run cppcheck for Codacy
+        run: |
+          # Use lightweight PS2SDK shims so Codacy does not report missing includes.
+          # When PS2SDK is available, PS2SDK points at the real headers; otherwise
+          # the shims under tools/codacy_shims/ps2sdk provide analysis-only types.
+          bash scripts/cppcheck.sh

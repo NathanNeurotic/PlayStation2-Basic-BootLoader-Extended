@@ -329,3 +329,10 @@ If you find one — please report it 🙂
   *(add `HDD=1` or `*_RUNTIME=1` flags as needed)*
 - `mk_kelf.sh` generates KELF variants
 - External IRX must reside in `mc?:/SYS-CONF/` when not embedded
+
+## Static Analysis (Codacy / cppcheck)
+
+- Run `scripts/cppcheck.sh` locally or in Codacy. It invokes `cppcheck` with `--library=std.cfg --check-config --enable=all --std=c99 --inline-suppr --suppress=missingIncludeSystem` and includes:
+  - `$PS2SDK/ee/include`, `$PS2SDK/iop/include`, `$PS2SDK/common/include` (defaulting to `/usr/local/ps2dev/ps2sdk`)
+  - Project headers under `include/`
+  - Analysis-only PS2SDK shims under `tools/codacy_shims/ps2sdk/` to avoid “missing include” findings when the real SDK is unavailable
