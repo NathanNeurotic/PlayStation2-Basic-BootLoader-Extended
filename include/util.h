@@ -12,16 +12,6 @@ int exist(char *filepath);
 */
 void delay(int count);
 
-/**
- * @brief load an IRX file into memory from a file
- * @param path path to the IRX
- * @param arg_len argc for IRX
- * @param args '\0' delimited list of args for IRX
- * @param mod_res see SifExecModuleBuffer documentation on SDK for this
- * @returns nonzero on failure, check SifExecModuleBuffer documentation on SDK
-*/
-int loadIRXFile(char *path, u32 arg_len, const char *args, int *mod_res);
-
 /// @brief config loop iterator borrowed from wLaunchELF
 int get_CNF_string(char **CNF_p_p,
                    char **name_p_p,
