@@ -30,6 +30,7 @@
 #include "debugprintf.h"
 #include "pad.h"
 #include "util.h"
+#include "util_safe.h"
 #include "common.h"
 
 #include "libcdvd_add.h"

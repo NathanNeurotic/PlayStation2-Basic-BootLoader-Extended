@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include "ps1.h"
+#include "util_safe.h"
 #include "OSDInit.h"
 #include "OSDHistory.h"
 
@@ -93,9 +94,9 @@ const char *PS1DRVGetVersion(void)
 
 static void CNFGetKey(char *cnf, char *line, const char *key)
 {
-    int len;
+    size_t len;
 
-    if ((len = strlen(key)) != 0) {
+    if ((len = util_bounded_strnlen(key, CNF_PATH_LEN_MAX)) != 0) {
         do {
             if (strncmp(cnf, key, len) == 0) {                               // Key located.
                 for (cnf += len; isspace((unsigned char)*cnf); cnf++) { // Eliminate leading whitespaces.
@@ -122,7 +123,7 @@ static void CNFGetKey(char *cnf, char *line, const char *key)
                         }
                     }
 
-                    strcpy(line, pKey);
+                    util_strlcpy(line, pKey, CNF_PATH_LEN_MAX);
                 }
 
                 return;
@@ -144,8 +145,8 @@ static int ParseBootCNF(void)
     u32 stat;
     int fd;
 
-    strcpy(ps1drv_ver, "???");
-    strcpy(ps1drv_boot, "???");
+    util_strlcpy(ps1drv_ver, "???", sizeof(ps1drv_ver));
+    util_strlcpy(ps1drv_boot, "???", sizeof(ps1drv_boot));
 
     if (OSDGetConsoleRegion() == CONSOLE_REGION_CHINA) { // China
         /*  I do not know why Sony did this for the Chinese console (SCPH-50009).
@@ -190,7 +191,7 @@ static int ParseBootCNF(void)
         // Locate the end of the line.
         for (i = 0; *pChar != ';' && *pChar != '\n' && *pChar != '\0'; pChar++, i++) {
             if (i + 1 == CNF_PATH_LEN_MAX + 1) {
-                strcpy(ps1drv_boot, "???");
+                util_strlcpy(ps1drv_boot, "???", sizeof(ps1drv_boot));
                 break;
             }
         }
@@ -198,35 +199,38 @@ static int ParseBootCNF(void)
         // Now we have reached the end of the line. Go back to the start of the filename and count the length of the filename.
         for (i = 0, len = 0; *pChar != '\\' && *pChar != ':'; --pChar, i++, len++) {
             if (i + 1 == CNF_PATH_LEN_MAX + 1) {
-                strcpy(ps1drv_boot, "???");
+                util_strlcpy(ps1drv_boot, "???", sizeof(ps1drv_boot));
                 break;
             }
         }
 
         // Copy the filename
         --len;
-        strncpy(ps1drv_boot, pChar + 1, len);
-        ps1drv_boot[len] = '\0';
+        {
+            size_t copy_len = (len < (int)(sizeof(ps1drv_boot) - 1)) ? (size_t)len : sizeof(ps1drv_boot) - 1;
+            memcpy(ps1drv_boot, pChar + 1, copy_len);
+            ps1drv_boot[copy_len] = '\0';
+        }
 
         // Get the version number
         ps1drv_ver[0] = '\0';
         CNFGetKey(ps1drv_boot, ps1drv_ver, "VER");
         if (ps1drv_ver[0] == '\0')
-            strcpy(ps1drv_ver, "???");
+            util_strlcpy(ps1drv_ver, "???", sizeof(ps1drv_ver));
 
         return 1;
     } else { // Odd PlayStation title
         if ((fd = open("cdrom0:\\PSXMYST\\MYST.CCS;1", O_RDWR)) >= 0) {
             close(fd);
-            strcpy(ps1drv_boot, "SLPS_000.24");
+            util_strlcpy(ps1drv_boot, "SLPS_000.24", sizeof(ps1drv_boot));
             return 1;
         } else if ((fd = open("cdrom0:\\CDROM\\LASTPHOT\\ALL_C.NBN;1", O_RDWR)) >= 0) {
             close(fd);
-            strcpy(ps1drv_boot, "SLPS_000.65");
+            util_strlcpy(ps1drv_boot, "SLPS_000.65", sizeof(ps1drv_boot));
             return 1;
         } else if ((fd = open("cdrom0:\\PSX.EXE;1", O_RDWR)) >= 0) { // Generic PlayStation game, with no ID information
             close(fd);
-            strcpy(ps1drv_boot, "???");
+            util_strlcpy(ps1drv_boot, "???", sizeof(ps1drv_boot));
             return 1;
         } else
             return 0;

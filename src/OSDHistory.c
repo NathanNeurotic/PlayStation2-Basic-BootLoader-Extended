@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "OSDInit.h"
 #include "util.h"
+#include "util_safe.h"
 #include "OSDHistory.h"
 #include "debugprintf.h"
 #include <stdlib.h>
@@ -124,7 +125,7 @@ int LoadHistoryFile(int port)
     if (result < sceMcResChangedCard || type != sceMcTypePS2 || format == 0)
         return -1;
 
-    sprintf(fullpath, "mc%d:/%s/%s", port, OSDGetHistoryDataFolder(), "history");
+    util_snprintf(fullpath, sizeof(fullpath), "mc%d:/%s/%s", port, OSDGetHistoryDataFolder(), "history");
     fd = open(fullpath, O_RDONLY);
     result = 0;
     if (fd >= 0) {
@@ -152,8 +153,8 @@ int SaveHistoryFile(int port)
         return -1;
     }
     // init paths
-    sprintf(DATAPATH, "mc%d:/%s/history", port, OSDGetSystemDataFolder());
-    sprintf(ICONSYS, "mc%d:/%s/icon.sys", port, OSDGetSystemDataFolder());
+    util_snprintf(DATAPATH, sizeof(DATAPATH), "mc%d:/%s/history", port, OSDGetSystemDataFolder());
+    util_snprintf(ICONSYS, sizeof(ICONSYS), "mc%d:/%s/icon.sys", port, OSDGetSystemDataFolder());
 
     if ((fd = open(DATAPATH, O_CREAT | O_TRUNC | O_WRONLY)) < 0) { // huh? try to make folder
         DPRINTF("%s: could not open file, trying to mkdir...\n", __func__);
@@ -309,7 +310,7 @@ static void AddHistoryRecord(const char *name)
             }
 
             // Initialize the new entry.
-            strncpy(NewEntry->name, name, sizeof(NewEntry->name));
+            util_strlcpy(NewEntry->name, name, sizeof(NewEntry->name));
             NewEntry->LaunchCount = 1;
             NewEntry->bitmask = 1;
             NewEntry->ShiftAmount = 0;
