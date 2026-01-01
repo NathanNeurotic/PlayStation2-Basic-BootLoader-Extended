@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "modelname.h"
+#include "util_safe.h"
 
 #define MODEL_NAME_MAX_LEN 17
 static char ModelName[MODEL_NAME_MAX_LEN];
@@ -38,7 +39,7 @@ static int ReadModelName(char *name)
     */
     if (ConsoleROMVER[0] == '0' && ConsoleROMVER[1] == '1' && ConsoleROMVER[2] == '0') {
         if (ConsoleROMVER[3] == '0') // For ROM v1.00 (Early SCPH-10000 units).
-            strcpy(name, "SCPH-10000");
+            util_strlcpy(name, "SCPH-10000", MODEL_NAME_MAX_LEN);
         else { // For ROM v1.01 (Late SCPH-10000, and all SCPH-15000 units).
             int fd;
             if ((fd = open("rom0:OSDSYS", O_RDONLY)) >= 0) { // The model name is located at this address.
@@ -46,7 +47,7 @@ static int ReadModelName(char *name)
                 read(fd, name, MODEL_NAME_MAX_LEN);
                 close(fd);
             } else
-                strcpy(name, "Unknown");
+                util_strlcpy(name, "Unknown", MODEL_NAME_MAX_LEN);
         }
 
         return 0; // Original returned -1
@@ -55,7 +56,7 @@ static int ReadModelName(char *name)
             if (stat & 0x80)
                 return -2;
             if ((stat & 0x40) || name[0] == '\0')
-                strcpy(name, "unknown");
+                util_strlcpy(name, "unknown", MODEL_NAME_MAX_LEN);
 
             return 0; // Original returned -1
         } else

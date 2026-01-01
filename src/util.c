@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
@@ -11,6 +12,7 @@
 #endif
 
 #include "util.h"
+#include "util_safe.h"
 
 int exist(const char *filepath)
 {
@@ -113,7 +115,7 @@ char **str_split(char *a_str, const char a_delim)
     }
 
     /* Add space for trailing token. */
-    count += last_comma < (a_str + strlen(a_str) - 1);
+    count += last_comma < (a_str + util_bounded_strnlen(a_str, SIZE_MAX) - 1);
 
     /* Add space for terminating null string so caller
        knows where the list of returned strings ends. */
