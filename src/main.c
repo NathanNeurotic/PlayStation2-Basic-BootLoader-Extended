@@ -56,7 +56,7 @@ const char *const DEFPATH[] = {
     "mc?:/APPS/ULE.ELF",
 };
 
-char *EXECPATHS[3] = {0};
+const char *EXECPATHS[3] = {0};
 u8 ROMVER[16];
 int PAD = 0;
 static int config_source = SOURCE_INVALID;
@@ -995,7 +995,7 @@ static int __attribute__((unused)) LocateExternalIRXPath(const char *filename, c
         int ret = snprintf(resolved_path, resolved_size, search_templates[i], filename);
         if (ret < 0 || (size_t)ret >= resolved_size)
             return -2;
-        char *checked_path = CheckPath(resolved_path);
+        const char *checked_path = CheckPath(resolved_path);
         if (checked_path != NULL && exist(checked_path)) {
             return 0;
         }

@@ -2,7 +2,7 @@
 
 /**
  * @brief checks for file existence
- * @param filepath path to the file to check
+ * @param filepath path to the file to check (will not be modified)
  * @returns 1 if exists, 0 if not
 */
 int exist(const char *filepath);
