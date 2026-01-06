@@ -49,10 +49,14 @@ static int read_full(int fd, void *buf, size_t nbytes)
 
     while (got < nbytes) {
         size_t remaining = nbytes - got;
+        size_t chunk = remaining;
         ssize_t r;
 
+        if (chunk > (size_t)SSIZE_MAX)
+            chunk = (size_t)SSIZE_MAX;
+
         do {
-            r = read(fd, p + got, remaining);
+            r = read(fd, p + got, chunk);
         } while (r < 0 && errno == EINTR);
 
         if (r <= 0)
