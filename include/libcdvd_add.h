@@ -13,7 +13,8 @@ int custom_sceCdReadRegionParams(u8 *data, u32 *stat);
  */
 int custom_sceCdReadPS1BootParam(char *param, u32 *stat);
 
-// Obtain model number from EEPROM via the mechacon SCMD 0x17
+// Obtain model number from EEPROM via the mechacon SCMD 0x17.
+// The caller must provide a buffer of at least 16 bytes (two 8-byte chunks).
 int sceCdRM(char *ModelName, u32 *stat);
 
 // Provides an equivalent of the sceCdBootCertify function from the newer CDVDMAN modules. The old CDVDFSV and CDVDMAN modules don't support this S-command.

@@ -32,15 +32,23 @@ size_t util_strlcpy(char *dst, const char *src, size_t dst_size)
 {
     const size_t src_len = util_bounded_strnlen(src, SIZE_MAX);
 
-    if (dst_size > 0 && dst != NULL) {
-        const size_t copy_len = (src_len >= dst_size) ? dst_size - 1 : src_len;
-
-        if (src != NULL && copy_len > 0) {
-            if (util_memcpy_s(dst, dst_size, src, copy_len) != 0)
-                return src_len;
-        }
-        dst[copy_len] = '\0';
+    if (dst == NULL || dst_size == 0) {
+        return src_len;
     }
+
+    if (src == NULL) {
+        dst[0] = '\0';
+        return src_len;
+    }
+
+    const size_t copy_len = (src_len >= dst_size) ? dst_size - 1 : src_len;
+
+    if (copy_len > 0 && util_memcpy_s(dst, dst_size, src, copy_len) != 0) {
+        dst[0] = '\0';
+        return src_len;
+    }
+
+    dst[copy_len] = '\0';
 
     return src_len;
 }

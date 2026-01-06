@@ -32,6 +32,31 @@ static char ps1drv_ver[64] = "";
 
 #define CNF_PATH_LEN_MAX 64
 
+static int HandleChineseBootParam(void)
+{
+    u32 stat;
+
+    if (OSDGetConsoleRegion() != CONSOLE_REGION_CHINA) {
+        return -1;
+    }
+
+    custom_sceCdReadPS1BootParam(ps1drv_boot, &stat);
+
+    if (stat & 0x180) { // Command unsupported or failed for some reason.
+        return 0;
+    }
+
+    if (ps1drv_boot[4] == '-')
+        ps1drv_boot[4] = '_';
+
+    ps1drv_boot[11] = '\0';
+    ps1drv_boot[10] = ps1drv_boot[9];
+    ps1drv_boot[9] = ps1drv_boot[8];
+    ps1drv_boot[8] = '.';
+
+    return 1;
+}
+
 int PS1DRVInit(void)
 {
     const char *pChar;
@@ -142,35 +167,15 @@ static void CNFGetKey(char *cnf, char *line, const char *key)
 
 static int ParseBootCNF(void)
 {
-    u32 stat;
     int fd;
+    int chinese_result;
 
     util_strlcpy(ps1drv_ver, "???", sizeof(ps1drv_ver));
     util_strlcpy(ps1drv_boot, "???", sizeof(ps1drv_boot));
 
-    if (OSDGetConsoleRegion() == CONSOLE_REGION_CHINA) { // China
-        /*  I do not know why Sony did this for the Chinese console (SCPH-50009).
-            Perhaps it as an act to strengthen their DRM for that release,
-            since PlayStation 2 game booting is also slightly different.
-
-            It is normally possible to actually parse SYSTEM.CNF and get the boot filename from BOOT.
-            Lots of homebrew software do that, and so does Sony (for all other regions).
-            But I do not know for sure whether that can be done for Chinese PlayStation discs. */
-        custom_sceCdReadPS1BootParam(ps1drv_boot, &stat);
-
-        if (stat & 0x180) { // Command unsupported or failed for some reason.
-            return 0;
-        }
-
-        if (ps1drv_boot[4] == '-')
-            ps1drv_boot[4] = '_';
-
-        ps1drv_boot[11] = '\0';
-        ps1drv_boot[10] = ps1drv_boot[9];
-        ps1drv_boot[9] = ps1drv_boot[8];
-        ps1drv_boot[8] = '.';
-
-        return 1;
+    chinese_result = HandleChineseBootParam();
+    if (chinese_result >= 0) {
+        return chinese_result;
     }
 
     if ((fd = open("cdrom0:\\SYSTEM.CNF;1", O_RDWR)) >= 0) {
