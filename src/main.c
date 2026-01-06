@@ -519,10 +519,10 @@ int main(int argc, char *argv[])
 
     if ((fd = open("rom0:ROMVER", O_RDONLY)) >= 0) {
         ssize_t len = read(fd, ROMVER, sizeof(ROMVER) - 1);
-        if (len > 0 && len < (ssize_t)sizeof(ROMVER))
-            ROMVER[len] = '\0';
-        else
+        if (len < 0)
             ROMVER[0] = '\0';
+        else
+            ROMVER[len] = '\0';
         close(fd);
     }
     j = SifLoadModule("rom0:ADDDRV", 0, NULL); // Load ADDDRV. The OSD has it listed in rom0:OSDCNF/IOPBTCONF, but it is otherwise not loaded automatically.
@@ -1028,21 +1028,12 @@ static int __attribute__((unused)) LocateExternalIRXPath(const char *filename, c
 
     for (i = 0; i < (sizeof(search_templates) / sizeof(search_templates[0])); i++) {
         const char *tmpl = search_templates[i];
-        const char *placeholder = strstr(tmpl, "%s");
-        if (placeholder == NULL)
+        if (strstr(tmpl, "%s") == NULL)
             continue;
 
-        size_t prefix_len = (size_t)(placeholder - tmpl);
-        size_t suffix_len = strlen(placeholder + 2);
-        size_t filename_len = strlen(filename);
-        size_t required = prefix_len + filename_len + suffix_len + 1;
-        if (required > resolved_size)
+        int ret = util_snprintf(resolved_path, resolved_size, tmpl, filename);
+        if (ret < 0 || (size_t)ret >= resolved_size)
             continue;
-
-        memcpy(resolved_path, tmpl, prefix_len);
-        memcpy(resolved_path + prefix_len, filename, filename_len);
-        memcpy(resolved_path + prefix_len + filename_len, placeholder + 2, suffix_len);
-        resolved_path[required - 1] = '\0';
 
         const char *checked_path = CheckPath(resolved_path);
         if (checked_path != NULL && exist(checked_path)) {

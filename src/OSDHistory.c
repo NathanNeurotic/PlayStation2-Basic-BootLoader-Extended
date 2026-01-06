@@ -42,6 +42,21 @@ static int HasTooManyHistoryRecords;
 static struct HistoryEntry OldHistoryEntry;
 struct HistoryEntry HistoryEntries[MAX_HISTORY_ENTRIES];
 
+static int read_full(int fd, void *buf, size_t nbytes)
+{
+    unsigned char *p = buf;
+    size_t got = 0;
+
+    while (got < nbytes) {
+        ssize_t r = read(fd, p + got, nbytes - got);
+        if (r <= 0)
+            return -1;
+        got += (size_t)r;
+    }
+
+    return 0;
+}
+
 #ifdef F_WriteHistoryFile
 static int WriteHistoryFile(int port, const char *path, const void *buffer, int len, int append)
 {
@@ -130,14 +145,7 @@ int LoadHistoryFile(int port)
     result = 0;
     if (fd >= 0) {
         size_t expected = MAX_HISTORY_ENTRIES * sizeof(struct HistoryEntry);
-        size_t total = 0;
-        while (total < expected) {
-            ssize_t chunk = read(fd, (u8 *)HistoryEntries + total, expected - total);
-            if (chunk <= 0)
-                break;
-            total += (size_t)chunk;
-        }
-        if (total != expected)
+        if (read_full(fd, HistoryEntries, expected) < 0)
             result = -EIO;
 
         close(fd);
