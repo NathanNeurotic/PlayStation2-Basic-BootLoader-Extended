@@ -58,7 +58,7 @@ static int InitMGRegion(void)
     if (ConsoleRegionParamInitStatus == 0) {
         int result;
         do {
-            if ((result = custom_sceCdReadRegionParams(ConsoleRegionData, &stat)) == 0) { // Failed.
+            if ((result = custom_sceCdReadRegionParams(ConsoleRegionData, sizeof(ConsoleRegionData), &stat)) == 0) { // Failed.
                 ConsoleRegionParamInitStatus = 1;
             } else {
                 if (stat & 0x100) {
@@ -164,12 +164,12 @@ static int GetConsoleRegion(void)
         if ((fd = open("rom0:ROMVER", O_RDONLY)) >= 0) {
             char romver[16] = {0};
             ssize_t len = read(fd, romver, sizeof(romver) - 1);
-            close(fd);
-            if (len <= 0) { // Ensure safe string use on read failure.
-                romver[0] = '\0';
-            } else {
+            if (len > 0 && len < (ssize_t)sizeof(romver)) {
                 romver[len] = '\0';
+            } else {
+                romver[0] = '\0';
             }
+            close(fd);
             ConsoleRegionParamsInitPS1DRV(romver);
 
             switch (romver[4]) {
@@ -225,7 +225,12 @@ static int GetOSDRegion(void)
         int fd;
         ConsoleOSDRegionInitStatus = 1;
         if ((fd = open("rom0:OSDVER", O_RDONLY)) >= 0) {
-            read(fd, OSDVer, sizeof(OSDVer));
+            ssize_t len = read(fd, OSDVer, sizeof(OSDVer) - 1);
+            if (len > 0 && len < (ssize_t)sizeof(OSDVer)) {
+                OSDVer[len] = '\0';
+            } else {
+                OSDVer[0] = '\0';
+            }
             close(fd);
             CdReadOSDRegionParams(OSDVer);
             switch (OSDVer[4]) {
@@ -556,7 +561,11 @@ int OSDInitROMVER(void)
 
     memset(ConsoleROMVER, 0, ROMVER_MAX_LEN);
     if ((fd = open("rom0:ROMVER", O_RDONLY)) >= 0) {
-        read(fd, ConsoleROMVER, ROMVER_MAX_LEN);
+        ssize_t len = read(fd, ConsoleROMVER, ROMVER_MAX_LEN - 1);
+        if (len > 0 && len < ROMVER_MAX_LEN)
+            ConsoleROMVER[len] = '\0';
+        else
+            ConsoleROMVER[0] = '\0';
         close(fd);
     }
 

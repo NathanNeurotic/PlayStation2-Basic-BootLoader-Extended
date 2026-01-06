@@ -129,7 +129,15 @@ int LoadHistoryFile(int port)
     fd = open(fullpath, O_RDONLY);
     result = 0;
     if (fd >= 0) {
-        if (read(fd, HistoryEntries, MAX_HISTORY_ENTRIES * sizeof(struct HistoryEntry)) != (MAX_HISTORY_ENTRIES * sizeof(struct HistoryEntry)))
+        size_t expected = MAX_HISTORY_ENTRIES * sizeof(struct HistoryEntry);
+        size_t total = 0;
+        while (total < expected) {
+            ssize_t chunk = read(fd, (u8 *)HistoryEntries + total, expected - total);
+            if (chunk <= 0)
+                break;
+            total += (size_t)chunk;
+        }
+        if (total != expected)
             result = -EIO;
 
         close(fd);
@@ -177,8 +185,14 @@ int SaveHistoryFile(int port)
 
     if (HasTooManyHistoryRecords) { // history is full and the entry is a new one
         DPRINTF("%s: too many records, updating history.old...\n", __func__);
-        strcat(DATAPATH, ".old");
-        if ((fd = open(DATAPATH, O_CREAT | O_WRONLY | O_APPEND)) < 0) // the least used entry will be taken out to make space
+        char datapath_old[sizeof(DATAPATH)];
+        int ret = util_snprintf(datapath_old, sizeof(datapath_old), "%s.old", DATAPATH);
+        if (ret < 0 || (size_t)ret >= sizeof(datapath_old)) {
+            DPRINTF("%s: history.old path too long, skipping update\n", __func__);
+            return 0;
+        }
+
+        if ((fd = open(datapath_old, O_CREAT | O_WRONLY | O_APPEND)) < 0) // the least used entry will be taken out to make space
         {
             DPRINTF("%s: opening history.old failed...\n", __func__);
             //what now?

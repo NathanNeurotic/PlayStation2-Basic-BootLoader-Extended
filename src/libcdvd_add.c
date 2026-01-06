@@ -33,12 +33,20 @@ int cdInitAdd(void)
     return -1;
 }
 
-int custom_sceCdReadRegionParams(u8 *data, u32 *stat)
+int custom_sceCdReadRegionParams(u8 *data, size_t data_size, u32 *stat)
 {
     unsigned char RegionData[15];
     int result;
 
-    memset(data, 0, 13);
+    if (data == NULL || stat == NULL)
+        return 0;
+
+    memset(data, 0, data_size);
+    if (data_size < 13) {
+        *stat = 0x100;
+        return 0;
+    }
+
     if (MECHACON_CMD_S36_supported) {
         // if ((result = sceCdApplySCmd(0x36, NULL, 0, RegionData, sizeof(RegionData))) != 0)
         if ((result = sceCdApplySCmd(0x36, NULL, 0, RegionData)) != 0) {
@@ -105,12 +113,20 @@ int sceCdRM(char *ModelName, u32 *stat)
     This function provides an equivalent of the sceCdReadPS1BootParam function from the newer CDVDMAN modules. The old CDVDFSV and CDVDMAN modules don't support this S-command.
     It's supported by only slimline consoles, and returns the boot path for the inserted PlayStation disc.
 */
-int custom_sceCdReadPS1BootParam(char *param, u32 *stat)
+int custom_sceCdReadPS1BootParam(char *param, size_t param_size, u32 *stat)
 {
     u8 out[16];
     int result;
 
-    memset(param, 0, 11);
+    if (param == NULL || stat == NULL)
+        return 0;
+
+    memset(param, 0, param_size);
+    if (param_size < 11) {
+        *stat = 0x100;
+        return 0;
+    }
+
     if (MECHACON_CMD_S27_supported) {
         // if ((result = sceCdApplySCmd(0x27, NULL, 0, out, 13)) != 0)
         if ((result = sceCdApplySCmd(0x27, NULL, 0, out)) != 0) {

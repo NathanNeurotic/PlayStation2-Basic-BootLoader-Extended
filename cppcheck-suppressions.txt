@@ -1,0 +1,3 @@
+// Suppress missing system include noise when PS2SDK headers are not available in CI/Codacy.
+missingIncludeSystem:*
+missingInclude:*

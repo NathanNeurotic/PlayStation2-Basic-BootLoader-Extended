@@ -32,6 +32,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container: ps2dev/ps2dev:latest
+    env:
+        COMMIT_SHA: ${{ github.sha }}
+        INPUT_DEBUG: ${{ github.event.inputs.debug }}
+        INPUT_PRINTF: ${{ github.event.inputs.printf }}
     steps:
 
       - name: Install dependencies
@@ -43,42 +47,47 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git fetch --prune --unshallow
 
-      - name: compilation opts
-        if: github.event.inputs.debug == true
+      - name: Set build env
         run: |
-          echo "DEBUG=$(echo DEBUG=1)" >> $GITHUB_ENV
+          echo "COMMIT_SHORT=${COMMIT_SHA:0:7}" >> "$GITHUB_ENV"
+          if [ "${INPUT_DEBUG}" = "true" ]; then
+            echo "DEBUG_FLAG=DEBUG=1" >> "$GITHUB_ENV"
+          else
+            echo "DEBUG_FLAG=" >> "$GITHUB_ENV"
+          fi
+          echo "PRINTF_VARIANT=${INPUT_PRINTF:-NONE}" >> "$GITHUB_ENV"
 
       - name: Compile PS2 build
         run: |
-          make release COMMIT_HASH=${GITHUB_SHA::7} BINDIR=PS2/ ${{ env.DEBUG }} PRINTF=${{ github.event.inputs.name }}
+          make release COMMIT_HASH=${COMMIT_SHORT} BINDIR=PS2/ ${DEBUG_FLAG:+$DEBUG_FLAG }PRINTF=${PRINTF_VARIANT}
 
       - name: Compile PS2 MX4SIO build
         run: |
-          make release COMMIT_HASH=${GITHUB_SHA::7} BINDIR=PS2_MX4SIO/ MX4SIO=1 ${{ env.DEBUG }} PRINTF=${{ github.event.inputs.name }}
+          make release COMMIT_HASH=${COMMIT_SHORT} BINDIR=PS2_MX4SIO/ MX4SIO=1 ${DEBUG_FLAG:+$DEBUG_FLAG }PRINTF=${PRINTF_VARIANT}
 
       - name: Compile PSX build
         run: |
-          make release COMMIT_HASH=${GITHUB_SHA::7} BINDIR=PSX/ PSX=1 ${{ env.DEBUG }} PRINTF=${{ github.event.inputs.name }}
+          make release COMMIT_HASH=${COMMIT_SHORT} BINDIR=PSX/ PSX=1 ${DEBUG_FLAG:+$DEBUG_FLAG }PRINTF=${PRINTF_VARIANT}
 
       - name: Compile PS2 HDD build
         run: |
-          make release COMMIT_HASH=${GITHUB_SHA::7} BINDIR=PS2_HDD/ HDD=1 ${{ env.DEBUG }} PRINTF=${{ github.event.inputs.name }}
+          make release COMMIT_HASH=${COMMIT_SHORT} BINDIR=PS2_HDD/ HDD=1 ${DEBUG_FLAG:+$DEBUG_FLAG }PRINTF=${PRINTF_VARIANT}
 
       - name: Compile PS2 MMCE build
         run: |
-          make release COMMIT_HASH=${GITHUB_SHA::7} BINDIR=PS2_MMCE/ MMCE=1 ${{ env.DEBUG }} PRINTF=${{ github.event.inputs.name }}
+          make release COMMIT_HASH=${COMMIT_SHORT} BINDIR=PS2_MMCE/ MMCE=1 ${DEBUG_FLAG:+$DEBUG_FLAG }PRINTF=${PRINTF_VARIANT}
 
       - name: Compile PSX MMCE build
         run: |
-          make release COMMIT_HASH=${GITHUB_SHA::7} BINDIR=PSX_MMCE/ PSX=1 MMCE=1 ${{ env.DEBUG }} PRINTF=${{ github.event.inputs.name }}
+          make release COMMIT_HASH=${COMMIT_SHORT} BINDIR=PSX_MMCE/ PSX=1 MMCE=1 ${DEBUG_FLAG:+$DEBUG_FLAG }PRINTF=${PRINTF_VARIANT}
 
       - name: Compile PS2 chainload build
         run: |
-          make release COMMIT_HASH=${GITHUB_SHA::7} CHAINLOAD=1 BINDIR=PS2_CHAINLOAD/ ${{ env.DEBUG }} PRINTF=${{ github.event.inputs.name }}
+          make release COMMIT_HASH=${COMMIT_SHORT} CHAINLOAD=1 BINDIR=PS2_CHAINLOAD/ ${DEBUG_FLAG:+$DEBUG_FLAG }PRINTF=${PRINTF_VARIANT}
 
       - name: Compile PSX chainload build
         run: |
-          make release COMMIT_HASH=${GITHUB_SHA::7} CHAINLOAD=1Z BINDIR=PSX_CHAINLOAD/ PSX=1 ${{ env.DEBUG }} PRINTF=${{ github.event.inputs.name }}
+          make release COMMIT_HASH=${COMMIT_SHORT} CHAINLOAD=1Z BINDIR=PSX_CHAINLOAD/ PSX=1 ${DEBUG_FLAG:+$DEBUG_FLAG }PRINTF=${PRINTF_VARIANT}
 
       - name: list
         run: |
@@ -99,7 +108,7 @@ jobs:
 
       - name: pack release
         run: |
-          CSH=${GITHUB_SHA::7}
+          CSH=${COMMIT_SHORT}
           DATE=$(date "+%d-%m-%Y")
           TARGET="PS2BBL[$DATE]-[$CSH]"
           cp -r release/ $TARGET/

@@ -40,7 +40,7 @@ static int HandleChineseBootParam(void)
         return -1;
     }
 
-    custom_sceCdReadPS1BootParam(ps1drv_boot, &stat);
+    custom_sceCdReadPS1BootParam(ps1drv_boot, sizeof(ps1drv_boot), &stat);
 
     if (stat & 0x180) { // Command unsupported or failed for some reason.
         return 0;
@@ -69,7 +69,11 @@ int PS1DRVInit(void)
     if (fd < 0)
         return -1;
 
-    read(fd, ps1drv.ver, sizeof(ps1drv.ver));
+    int bytes = read(fd, ps1drv.ver, sizeof(ps1drv.ver) - 1);
+    if (bytes > 0 && bytes < (int)sizeof(ps1drv.ver))
+        ps1drv.ver[bytes] = '\0';
+    else
+        ps1drv.ver[0] = '\0';
     close(fd);
 
     pChar = ps1drv.ver;
@@ -99,10 +103,11 @@ int PS1DRVInit(void)
 
         if (fd >= 0) {
             result = read(fd, ps1drv.ver, sizeof(ps1drv.ver) - 1);
+            if (result > 0 && result < (int)sizeof(ps1drv.ver))
+                ps1drv.ver[result] = '\0';
+            else
+                ps1drv.ver[0] = '\0';
             close(fd);
-
-            // NULL-terminate, only if non-error
-            ps1drv.ver[result >= 0 ? result : 0] = '\0';
         }
     }
 
@@ -183,10 +188,12 @@ static int ParseBootCNF(void)
         const char *pChar;
         int size, i, len;
 
-        size = read(fd, system_cnf, sizeof(system_cnf));
+        size = read(fd, system_cnf, sizeof(system_cnf) - 1);
         close(fd);
-
-        system_cnf[size] = '\0';
+        if (size > 0 && size < (int)sizeof(system_cnf))
+            system_cnf[size] = '\0';
+        else
+            system_cnf[0] = '\0';
         line[0] = '\0';
 
         // Parse SYSTEM.CNF
