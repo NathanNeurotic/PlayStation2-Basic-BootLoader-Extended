@@ -162,9 +162,14 @@ static int GetConsoleRegion(void)
     if ((result = ConsoleRegion) < 0) {
         int fd;
         if ((fd = open("rom0:ROMVER", O_RDONLY)) >= 0) {
-            char romver[16];
-            read(fd, romver, sizeof(romver));
+            char romver[16] = {0};
+            ssize_t len = read(fd, romver, sizeof(romver) - 1);
             close(fd);
+            if (len <= 0) { // Ensure safe string use on read failure.
+                romver[0] = '\0';
+            } else {
+                romver[len] = '\0';
+            }
             ConsoleRegionParamsInitPS1DRV(romver);
 
             switch (romver[4]) {

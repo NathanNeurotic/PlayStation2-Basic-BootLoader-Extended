@@ -305,7 +305,7 @@ static void AddHistoryRecord(const char *name)
                 NewEntry = &HistoryEntries[BlankSlotList[rand() % NumBlankSlots]];
             } else { // Copy out the victim record
                 NewEntry = &HistoryEntries[LeastUsedRecord];
-                memcpy(&OldHistoryEntry, NewEntry, sizeof(OldHistoryEntry));
+                OldHistoryEntry = *NewEntry; // Structures are the same type; direct assignment avoids size-mismatch risks.
                 HasTooManyHistoryRecords = 1;
             }
 
