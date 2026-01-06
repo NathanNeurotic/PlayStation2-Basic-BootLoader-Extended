@@ -30,6 +30,8 @@ static char ps1ver_uni[] = "rom0:PS1VER?";
 static char ps1drv_boot[64] = "";
 static char ps1drv_ver[64] = "";
 
+#define CNF_PATH_LEN_MAX 64
+
 int PS1DRVInit(void)
 {
     const char *pChar;
@@ -137,8 +139,6 @@ static void CNFGetKey(char *cnf, char *line, const char *key)
         } while (*cnf != '\0');
     }
 }
-
-#define CNF_PATH_LEN_MAX 64
 
 static int ParseBootCNF(void)
 {
