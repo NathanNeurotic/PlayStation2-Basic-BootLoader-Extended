@@ -46,9 +46,4 @@ void *memmove(void *dest, const void *src, size_t n);
 int vsnprintf(char *str, size_t size, const char *format, va_list ap);
 #endif
 
-#ifndef SNPRINTF_DECLARED
-#define SNPRINTF_DECLARED 1
-int snprintf(char *str, size_t size, const char *format, ...);
-#endif
-
 #endif /* UTIL_SAFE_COMPAT_H */

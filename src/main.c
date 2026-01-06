@@ -1,13 +1,6 @@
 #include <errno.h>
 
 #include "util_safe_compat.h"
-#if defined(__has_include)
-#if __has_include(<limits.h>)
-#include <limits.h>
-#endif
-#else
-#include <limits.h>
-#endif
 #include "main.h"
 // --------------- glob stuff --------------- //
 #define RUNKELF_ARG_BUF_SIZE 64
