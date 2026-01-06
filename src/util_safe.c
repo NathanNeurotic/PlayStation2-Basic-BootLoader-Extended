@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <stdint.h>
 
 size_t util_bounded_strnlen(const char *str, size_t max_len)
 {
