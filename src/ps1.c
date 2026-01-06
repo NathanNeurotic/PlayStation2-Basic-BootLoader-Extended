@@ -207,9 +207,12 @@ static int ParseBootCNF(void)
         // Copy the filename
         --len;
         {
-            size_t copy_len = (len < (int)(sizeof(ps1drv_boot) - 1)) ? (size_t)len : sizeof(ps1drv_boot) - 1;
-            memcpy(ps1drv_boot, pChar + 1, copy_len);
-            ps1drv_boot[copy_len] = '\0';
+            if (len <= 0) {
+                util_strlcpy(ps1drv_boot, "???", sizeof(ps1drv_boot));
+            } else {
+                size_t copy_len = (len < (int)(sizeof(ps1drv_boot) - 1)) ? (size_t)len : sizeof(ps1drv_boot) - 1;
+                util_snprintf(ps1drv_boot, sizeof(ps1drv_boot), "%.*s", (int)copy_len, pChar + 1);
+            }
         }
 
         // Get the version number
