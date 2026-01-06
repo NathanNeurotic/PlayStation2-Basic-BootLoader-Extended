@@ -22,12 +22,18 @@ jobs:
           git fetch --prune --unshallow
 
       - name: Compile PS2 build
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+          MAKE_ARGS: ${{ github.event.inputs.make_args }}
         run: |
-          make release COMMIT_HASH=${GITHUB_SHA::7} BINDIR=PS2BBL_CUSTOM_BUILD/ps2/ ${{ github.event.inputs.make_args }}
+          make release COMMIT_HASH=${COMMIT_SHA:0:7} BINDIR=PS2BBL_CUSTOM_BUILD/ps2/ ${MAKE_ARGS:-}
 
       - name: Compile PSX build
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+          MAKE_ARGS: ${{ github.event.inputs.make_args }}
         run: |
-          make release COMMIT_HASH=${GITHUB_SHA::7} BINDIR=PS2BBL_CUSTOM_BUILD/psx/ PSX=1 ${{ github.event.inputs.make_args }}
+          make release COMMIT_HASH=${COMMIT_SHA:0:7} BINDIR=PS2BBL_CUSTOM_BUILD/psx/ PSX=1 ${MAKE_ARGS:-}
 
       - name: Build release notes (PS2/PSX)
         run: |

@@ -1,23 +1,57 @@
 #ifndef DEBUG_PRINTF
 #define DEBUG_PRINTF
-// clang-format off
-#ifdef EE_SIO_DEBUG
-void sio_printf(const char *fmt, ...);
-    #include <SIOCookie.h>
-    #define DPRINTF_INIT() ee_sio_start(38400, 0, 0, 0, 0, 1);
-    #define DPRINTF(x...) sio_printf( x)
-#elif COMMON_PRINTF
-    #define DPRINTF(x...) printf(x)
-#elif SCR_PRINT
-    #include <debug.h>
-    #define DPRINTF(x...) scr_printf("\t"x)
-#else
-    #define DPRINTF(x...)
-    #define NO_DPRINTF
+
+#include <stdarg.h>
+#include <stdio.h>
+
+#ifdef SCR_PRINT
+#include <debug.h>
 #endif
 
-#ifndef DPRINTF_INIT
+#define DEBUGPRINTF_BUFFER_SIZE 256
+
+#ifdef EE_SIO_DEBUG
+void sio_printf(const char *fmt, ...);
+#include <SIOCookie.h>
+#define DPRINTF_INIT() ee_sio_start(38400, 0, 0, 0, 0, 1);
+static inline void debugprintf(const char *fmt, ...)
+{
+    char buffer[DEBUGPRINTF_BUFFER_SIZE];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    va_end(args);
+    sio_printf("%s", buffer);
+}
+#elif SCR_PRINT
 #define DPRINTF_INIT()
+static inline void debugprintf(const char *fmt, ...)
+{
+    char buffer[DEBUGPRINTF_BUFFER_SIZE];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    va_end(args);
+    scr_printf("%s", buffer);
+}
+#elif COMMON_PRINTF
+#define DPRINTF_INIT()
+static inline void debugprintf(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
+}
+#else
+#define DPRINTF_INIT()
+static inline void debugprintf(const char *fmt, ...)
+{
+    (void)fmt;
+}
+#define NO_DPRINTF
 #endif
+
+#define DPRINTF(...) debugprintf(__VA_ARGS__)
 
 #endif //DEBUG_PRINTF

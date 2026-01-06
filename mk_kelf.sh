@@ -5,6 +5,14 @@ DATE=$(date "+%d-%m-%Y")
 SHA8=$(git rev-parse --short HEAD)
 TARGET="PS2BBL_KELF-[$DATE]-[$SHA8]"
 
+: "${TARGET:?TARGET not set}"
+case "$TARGET" in
+  ""|"/"|"."|"/*")
+    echo "Refusing to operate on unsafe TARGET: '$TARGET'" >&2
+    exit 1
+    ;;
+esac
+
 rm -rf kelf
 rm -f PS2BBL_KELF.7z
 mkdir -p kelf/MX4SIO
@@ -38,5 +46,5 @@ cp LICENSE kelf/LICENSE.TXT
 cp README.md kelf/README.md
 mv kelf/ $TARGET
 7z a -t7z PS2BBL_KELF.7z "$TARGET/*"
-rm -rf "$TARGET/"
+rm -rf -- "$TARGET/"
 echo "done!"

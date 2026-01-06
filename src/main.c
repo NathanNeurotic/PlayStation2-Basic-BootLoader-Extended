@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <string.h>
 
 #include "util_safe_compat.h"
 #include "main.h"
@@ -210,7 +211,9 @@ static int StoreKeypathCopy(int key_index, int path_index, const char *value)
 
 static void InitConfigPathState(void)
 {
-    memcpy(CONFIG_PATHS, DEFAULT_CONFIG_PATHS, sizeof(CONFIG_PATHS));
+    for (size_t i = 0; i < SOURCE_COUNT; i++) {
+        CONFIG_PATHS[i] = DEFAULT_CONFIG_PATHS[i];
+    }
     memset(config_path_enabled, 0, sizeof(config_path_enabled));
     config_path_enabled[SOURCE_CWD] = 1;
     config_path_enabled[SOURCE_MC1] = 1;
@@ -515,7 +518,11 @@ int main(int argc, char *argv[])
 #endif
 
     if ((fd = open("rom0:ROMVER", O_RDONLY)) >= 0) {
-        read(fd, ROMVER, sizeof(ROMVER));
+        ssize_t len = read(fd, ROMVER, sizeof(ROMVER) - 1);
+        if (len > 0 && len < (ssize_t)sizeof(ROMVER))
+            ROMVER[len] = '\0';
+        else
+            ROMVER[0] = '\0';
         close(fd);
     }
     j = SifLoadModule("rom0:ADDDRV", 0, NULL); // Load ADDDRV. The OSD has it listed in rom0:OSDCNF/IOPBTCONF, but it is otherwise not loaded automatically.
@@ -986,7 +993,15 @@ void runKELF(const char *kelfpath)
     char arg3[RUNKELF_ARG_BUF_SIZE];
     char *args[4] = {"-m rom0:SIO2MAN", "-m rom0:MCMAN", "-m rom0:MCSERV", arg3};
 
-    ret = snprintf(arg3, sizeof(arg3), RUNKELF_ARG_PREFIX "%s", kelfpath);
+    if (kelfpath == NULL || kelfpath[0] == '\0') {
+        DPRINTF("runKELF: missing KELF path\n");
+        scr_setfontcolor(0x0000ff);
+        scr_printf("ERROR: KELF path missing\n");
+        scr_setfontcolor(0xffffff);
+        return;
+    }
+
+    ret = snprintf(arg3, sizeof(arg3), "%s%s", RUNKELF_ARG_PREFIX, kelfpath);
     if (ret < 0 || (size_t)ret >= sizeof(arg3)) {
         DPRINTF("runKELF: KELF path is too long (%d) for buffer size %zu\n", ret, sizeof(arg3));
         scr_setfontcolor(0x0000ff);
@@ -1012,9 +1027,23 @@ static int __attribute__((unused)) LocateExternalIRXPath(const char *filename, c
         return -1;
 
     for (i = 0; i < (sizeof(search_templates) / sizeof(search_templates[0])); i++) {
-        int ret = snprintf(resolved_path, resolved_size, search_templates[i], filename);
-        if (ret < 0 || (size_t)ret >= resolved_size)
-            return -2;
+        const char *tmpl = search_templates[i];
+        const char *placeholder = strstr(tmpl, "%s");
+        if (placeholder == NULL)
+            continue;
+
+        size_t prefix_len = (size_t)(placeholder - tmpl);
+        size_t suffix_len = strlen(placeholder + 2);
+        size_t filename_len = strlen(filename);
+        size_t required = prefix_len + filename_len + suffix_len + 1;
+        if (required > resolved_size)
+            continue;
+
+        memcpy(resolved_path, tmpl, prefix_len);
+        memcpy(resolved_path + prefix_len, filename, filename_len);
+        memcpy(resolved_path + prefix_len + filename_len, placeholder + 2, suffix_len);
+        resolved_path[required - 1] = '\0';
+
         const char *checked_path = CheckPath(resolved_path);
         if (checked_path != NULL && exist(checked_path)) {
             return 0;
