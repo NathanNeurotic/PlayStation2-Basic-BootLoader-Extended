@@ -6,6 +6,7 @@
 
 #include "debugprintf.h"
 #include "libcdvd_add.h"
+#include "util_safe.h"
 
 static unsigned char MECHACON_CMD_S36_supported = 0, MECHACON_CMD_S27_supported = 0, MECHACON_CMD_S24_supported = 0;
 
@@ -65,25 +66,36 @@ int sceCdBootCertify(const u8 *data)
     return result;
 }
 
-int sceCdRM(char *ModelName, u32 *stat)
+int sceCdRM(char *ModelName, size_t modelNameSize, u32 *stat)
 {
     unsigned char rdata[9];
     unsigned char sdata;
     int result1, result2;
+
+    if (ModelName == NULL || stat == NULL || modelNameSize < 16) {
+        return 0;
+    }
+
+    memset(rdata, 0, sizeof(rdata));
+    memset(ModelName, 0, modelNameSize);
 
     sdata = 0;
     result1 = sceCdApplySCmd(0x17, &sdata, 1, rdata);
     // result1 = sceCdApplySCmd(0x17, &sdata, 1, rdata, 9);
 
     *stat = rdata[0];
-    memcpy(ModelName, &rdata[1], 8);
+    if (result1 != 0 && util_memcpy_s(ModelName, modelNameSize, &rdata[1], 8) != 0) {
+        result1 = 0;
+    }
 
     sdata = 8;
     result2 = sceCdApplySCmd(0x17, &sdata, 1, rdata);
     // result2 = sceCdApplySCmd(0x17, &sdata, 1, rdata, 9);
 
     *stat |= rdata[0];
-    memcpy(&ModelName[8], &rdata[1], 8);
+    if (result2 != 0 && util_memcpy_s(&ModelName[8], modelNameSize - 8, &rdata[1], 8) != 0) {
+        result2 = 0;
+    }
 
     return ((result1 != 0 && result2 != 0) ? 1 : 0);
 }
