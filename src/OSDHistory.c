@@ -53,17 +53,15 @@ static int read_full(int fd, void *buf, size_t nbytes)
 
     while (got < nbytes) {
         size_t remaining = nbytes - got;
-        size_t chunk = remaining;
-        ssize_t r;
+        size_t to_read = remaining;
+        ssize_t r = read(fd, p + got, to_read);
 
-        if (chunk > (size_t)SSIZE_MAX)
-            chunk = (size_t)SSIZE_MAX;
-
-        do {
-            r = read(fd, p + got, chunk);
-        } while (r < 0 && errno == EINTR);
-
-        if (r <= 0)
+        if (r < 0) {
+            if (errno == EINTR)
+                continue;
+            return -1;
+        }
+        if (r == 0)
             return -1;
 
         got += (size_t)r;
@@ -159,8 +157,7 @@ int LoadHistoryFile(int port)
     fd = open(fullpath, O_RDONLY);
     result = 0;
     if (fd >= 0) {
-        size_t expected = MAX_HISTORY_ENTRIES * sizeof(struct HistoryEntry);
-        if (read_full(fd, HistoryEntries, expected) < 0)
+        if (read_full(fd, HistoryEntries, sizeof(HistoryEntries)) < 0)
             result = -EIO;
 
         close(fd);
