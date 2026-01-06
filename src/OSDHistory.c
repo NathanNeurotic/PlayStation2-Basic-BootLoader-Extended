@@ -48,10 +48,15 @@ static int read_full(int fd, void *buf, size_t nbytes)
     size_t got = 0;
 
     while (got < nbytes) {
-        ssize_t r = read(fd, p + got, nbytes - got);
-        if (r <= 0)
-            return -1;
-        got += (size_t)r;
+        size_t remaining = nbytes - got;
+        ssize_t r = read(fd, p + got, remaining);
+        if (r > 0) {
+            got += (size_t)r;
+            continue;
+        }
+        if (r < 0 && errno == EINTR)
+            continue;
+        return -1;
     }
 
     return 0;
