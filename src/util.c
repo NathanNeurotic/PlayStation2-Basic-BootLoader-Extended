@@ -1,5 +1,8 @@
 #include <errno.h>
+#include "util_safe_compat.h"
+#ifndef __CPPCHECK__
 #include <limits.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>

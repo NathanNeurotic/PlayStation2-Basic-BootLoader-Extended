@@ -1,6 +1,9 @@
 #include <errno.h>
-#include <limits.h>
 
+#include "util_safe_compat.h"
+#ifndef __CPPCHECK__
+#include <limits.h>
+#endif
 #include "main.h"
 // --------------- glob stuff --------------- //
 #define RUNKELF_ARG_BUF_SIZE 64
