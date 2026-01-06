@@ -14,6 +14,10 @@
 #include "debugprintf.h"
 #include <stdlib.h>
 
+#ifndef SSIZE_MAX
+#define SSIZE_MAX ((ssize_t)(SIZE_MAX >> 1))
+#endif
+
 /*  The OSDs have this weird bug whereby the size of the icon file is hardcoded to 1776 bytes... even though that is way too long!
     Unfortunately, using the right size will cause the icon to be deemed as corrupted data by the HDDOSD. */
 #define SYSDATA_ICON_SYS_SIZE 1776
