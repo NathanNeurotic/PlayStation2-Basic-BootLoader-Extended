@@ -1,6 +1,10 @@
 #include <errno.h>
 #include "util_safe_compat.h"
-#ifndef __CPPCHECK__
+#if defined(__has_include)
+#if __has_include(<limits.h>)
+#include <limits.h>
+#endif
+#else
 #include <limits.h>
 #endif
 #include <stdio.h>
