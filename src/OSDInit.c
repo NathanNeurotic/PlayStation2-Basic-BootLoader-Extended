@@ -562,10 +562,10 @@ int OSDInitROMVER(void)
     memset(ConsoleROMVER, 0, ROMVER_MAX_LEN);
     if ((fd = open("rom0:ROMVER", O_RDONLY)) >= 0) {
         ssize_t len = read(fd, ConsoleROMVER, ROMVER_MAX_LEN - 1);
-        if (len > 0 && len < ROMVER_MAX_LEN)
-            ConsoleROMVER[len] = '\0';
-        else
+        if (len < 0)
             ConsoleROMVER[0] = '\0';
+        else
+            ConsoleROMVER[len] = '\0';
         close(fd);
     }
 

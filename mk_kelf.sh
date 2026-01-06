@@ -46,5 +46,9 @@ cp LICENSE kelf/LICENSE.TXT
 cp README.md kelf/README.md
 mv kelf/ $TARGET
 7z a -t7z PS2BBL_KELF.7z "$TARGET/*"
+if [ "$TARGET" = "/" ] || [ "$TARGET" = "." ]; then
+  echo "Refusing to remove unsafe TARGET: '$TARGET'" >&2
+  exit 1
+fi
 rm -rf -- "$TARGET/"
 echo "done!"

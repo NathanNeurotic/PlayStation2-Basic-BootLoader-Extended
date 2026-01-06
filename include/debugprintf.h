@@ -52,6 +52,12 @@ static inline void debugprintf(const char *fmt, ...)
 #define NO_DPRINTF
 #endif
 
-#define DPRINTF(...) debugprintf(__VA_ARGS__)
+#ifdef NO_DPRINTF
+#define DPRINTF(...) ((void)0)
+#define DPRINTS(s)   ((void)0)
+#else
+#define DPRINTF(fmt, ...) debugprintf("" fmt "", ##__VA_ARGS__)
+#define DPRINTS(s)        debugprintf("%s", (s))
+#endif
 
 #endif //DEBUG_PRINTF

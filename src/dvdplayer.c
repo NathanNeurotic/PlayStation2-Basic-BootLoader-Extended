@@ -308,11 +308,11 @@ int DVDPlayerInit(void)
         return 0;
     }
 
-    int bytes = read(fd, id, sizeof(id) - 1);
-    if (bytes > 0 && bytes < (int)sizeof(id))
-        id[bytes] = '\0';
-    else
+    ssize_t bytes = read(fd, id, sizeof(id) - 1);
+    if (bytes < 0)
         id[0] = '\0';
+    else
+        id[bytes] = '\0';
     close(fd);
 
     ROMDVDPlayer.major = atoi(id);
@@ -340,11 +340,11 @@ int DVDPlayerInit(void)
             fd = open("rom1:DVDVER", O_RDONLY);
 
         if (fd >= 0) {
-            result = read(fd, ROMDVDPlayer.ver, sizeof(ROMDVDPlayer.ver) - 1);
-            if (result > 0 && result < (int)sizeof(ROMDVDPlayer.ver))
-                ROMDVDPlayer.ver[result] = '\0';
-            else
+            ssize_t version_len = read(fd, ROMDVDPlayer.ver, sizeof(ROMDVDPlayer.ver) - 1);
+            if (version_len < 0)
                 ROMDVDPlayer.ver[0] = '\0';
+            else
+                ROMDVDPlayer.ver[version_len] = '\0';
             close(fd);
         }
     }
