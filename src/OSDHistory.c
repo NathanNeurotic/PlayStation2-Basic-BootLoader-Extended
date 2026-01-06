@@ -130,6 +130,8 @@ int LoadHistoryFile(int port)
     result = 0;
     if (fd >= 0) {
         /* Flawfinder: ignore (bounded read into fixed-size HistoryEntries buffer) */
+        // cppcheck-suppress readBufferSize
+        // cppcheck-suppress bufferAccessOutOfBounds
         ssize_t r = read(fd, HistoryEntries, HISTORY_SIZE);
         if (r != (ssize_t)HISTORY_SIZE)
             result = -EIO;
