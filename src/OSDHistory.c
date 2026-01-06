@@ -14,10 +14,6 @@
 #include "debugprintf.h"
 #include <stdlib.h>
 
-#ifndef SSIZE_MAX
-#define SSIZE_MAX ((ssize_t)(SIZE_MAX >> 1))
-#endif
-
 /*  The OSDs have this weird bug whereby the size of the icon file is hardcoded to 1776 bytes... even though that is way too long!
     Unfortunately, using the right size will cause the icon to be deemed as corrupted data by the HDDOSD. */
 #define SYSDATA_ICON_SYS_SIZE 1776
@@ -46,26 +42,18 @@ static int HasTooManyHistoryRecords;
 static struct HistoryEntry OldHistoryEntry;
 struct HistoryEntry HistoryEntries[MAX_HISTORY_ENTRIES];
 
-static int read_full(int fd, void *buf, size_t nbytes)
+static int read_exact_once(int fd, void *dst, size_t dst_size)
 {
-    unsigned char *p = buf;
-    size_t got = 0;
+    ssize_t r;
 
-    while (got < nbytes) {
-        size_t remaining = nbytes - got;
-        size_t to_read = remaining;
-        ssize_t r = read(fd, p + got, to_read);
+    if (dst == NULL || dst_size == 0)
+        return -1;
 
-        if (r < 0) {
-            if (errno == EINTR)
-                continue;
-            return -1;
-        }
-        if (r == 0)
-            return -1;
-
-        got += (size_t)r;
-    }
+    r = read(fd, dst, dst_size);
+    if (r < 0)
+        return -1;
+    if ((size_t)r != dst_size)
+        return -1;
 
     return 0;
 }
@@ -157,7 +145,7 @@ int LoadHistoryFile(int port)
     fd = open(fullpath, O_RDONLY);
     result = 0;
     if (fd >= 0) {
-        if (read_full(fd, HistoryEntries, sizeof(HistoryEntries)) < 0)
+        if (read_exact_once(fd, HistoryEntries, sizeof(HistoryEntries)) < 0)
             result = -EIO;
 
         close(fd);
