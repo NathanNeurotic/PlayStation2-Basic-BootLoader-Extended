@@ -1,5 +1,6 @@
 #include <errno.h>
 
+#include "util_safe_compat.h"
 #include "main.h"
 // --------------- glob stuff --------------- //
 #define RUNKELF_ARG_BUF_SIZE 64
@@ -170,13 +171,13 @@ static int StoreKeypathFallback(int key_index, int path_index, const char *value
     if (value == NULL)
         return -1;
 
-    len = strlen(value);
+    len = util_bounded_strnlen(value, sizeof(keypath_fallback_store[0][0]));
     if (len >= sizeof(keypath_fallback_store[0][0])) {
         DPRINTF("Failed to store fallback keypath[%d][%d]: length %u exceeds %zu\n", key_index, path_index, (unsigned)len, sizeof(keypath_fallback_store[0][0]) - 1);
         return -1;
     }
 
-    strcpy(keypath_fallback_store[key_index][path_index], value);
+    util_strlcpy(keypath_fallback_store[key_index][path_index], value, sizeof(keypath_fallback_store[0][0]));
     keypath_store[key_index][path_index] = keypath_fallback_store[key_index][path_index];
     keypath_allocated[key_index][path_index] = 0;
     GLOBCFG.KEYPATHS[key_index][path_index] = keypath_store[key_index][path_index];
@@ -732,7 +733,7 @@ int main(int argc, char *argv[])
                         }
                         if (!strncmp(value, RUNKELF_PREFIX, RUNKELF_PREFIX_LEN)) {
                             const char *kelf_path = value + RUNKELF_PREFIX_LEN;
-                            size_t kelf_path_len = strlen(kelf_path);
+                            size_t kelf_path_len = util_bounded_strnlen(kelf_path, RUNKELF_MAX_KELF_PATH_LEN + 1);
                             if (kelf_path_len > RUNKELF_MAX_KELF_PATH_LEN) {
                                 DPRINTF("Ignoring config entry %s: KELF path length %u exceeds limit %u\n", name, (unsigned)kelf_path_len, (unsigned)RUNKELF_MAX_KELF_PATH_LEN);
                                 continue;
@@ -740,7 +741,7 @@ int main(int argc, char *argv[])
                         }
                         for (x = 0; x < 17; x++) {
                             for (j = 0; j < 3; j++) {
-                                sprintf(TMP, "LK_%s_E%d", KEYS_ID[x], j + 1);
+                                util_snprintf(TMP, sizeof(TMP), "LK_%s_E%d", KEYS_ID[x], j + 1);
                                 if (!strcmp(name, TMP)) {
                                     if (StoreKeypathCopy(x, j, value) != 0) {
                                         DPRINTF("Failed to duplicate config path for %s\n", name);
@@ -1031,7 +1032,7 @@ char *CheckPath(char *path)
     if (path == NULL)
         return NULL;
 
-    path_len = strlen(path);
+    path_len = util_bounded_strnlen(path, SIZE_MAX);
     if (path_len == 0)
         return NULL;
 
@@ -1051,8 +1052,8 @@ char *CheckPath(char *path)
             credits();
         if (!strcmp("$OSDSYS", path))
             runOSDNoUpdate();
-        if (!strncmp("$RUNKELF:", path, strlen("$RUNKELF:"))) {
-            runKELF(CheckPath(path + strlen("$RUNKELF:"))); // pass to runKELF the path without the command token, digested again by CheckPath()
+        if (!strncmp("$RUNKELF:", path, RUNKELF_PREFIX_LEN)) {
+            runKELF(CheckPath(path + RUNKELF_PREFIX_LEN)); // pass to runKELF the path without the command token, digested again by CheckPath()
         }
     }
     if ((path_len >= 3) && !strncmp("mc?", path, 3)) {
@@ -1472,7 +1473,7 @@ void HDDChecker()
     const char *HEADING = "HDD Diagnosis routine";
     int ret = -1;
     scr_clear();
-    scr_printf("\n\n%*s%s\n", ((80 - strlen(HEADING)) / 2), "", HEADING);
+    scr_printf("\n\n%*s%s\n", ((80 - util_bounded_strnlen(HEADING, 80)) / 2), "", HEADING);
     scr_setfontcolor(0x0000FF);
     ret = fileXioDevctl("hdd0:", HDIOC_STATUS, NULL, 0, NULL, 0);
     if (ret == 0 || ret == 1)

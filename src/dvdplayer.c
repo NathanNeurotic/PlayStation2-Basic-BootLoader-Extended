@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include "dvdplayer.h"
+#include "util_safe.h"
 #include "OSDInit.h"
 #include "OSDHistory.h"
 
@@ -129,9 +130,9 @@ static int DVDPlayerUpdateCheck(int *pPort, int *pSlot, char *pVersion)
     const char *pChar;
     int port, slot, result, major, minor;
 
-    sprintf(dvdplayer_id, "%s/%s", OSDGetDVDPLExecFolder(), "dvdplayer.id");
+    util_snprintf(dvdplayer_id, sizeof(dvdplayer_id), "%s/%s", OSDGetDVDPLExecFolder(), "dvdplayer.id");
     // In OSD v1.0x, the browser used to check either "dvdplayer-j.ver" or "dvdplayer-e.ver", depending on the language setting.
-    sprintf(dvdplayer_e_ver, "%s/%s", OSDGetDVDPLExecFolder(), "dvdplayer-e.ver");
+    util_snprintf(dvdplayer_e_ver, sizeof(dvdplayer_e_ver), "%s/%s", OSDGetDVDPLExecFolder(), "dvdplayer-e.ver");
 
     for (port = 0; port < 2; port++) {
         // Both memory card slots are supported for each port, mirroring the outer port loop.
@@ -188,8 +189,7 @@ static int DVDPlayerUpdateCheck(int *pPort, int *pSlot, char *pVersion)
 
                                 // This is done for DVDPlayerGetVersion(). The check for the pointer also existed, even though it checks against a buffer's address.
                                 if (pVersion != NULL) {
-                                    strncpy(pVersion, version, DVD_PLAYER_VER_LEN - 1);
-                                    pVersion[DVD_PLAYER_VER_LEN - 1] = '\0';
+                                    util_strlcpy(pVersion, version, DVD_PLAYER_VER_LEN);
                                 }
 
                                 return 0;
@@ -223,7 +223,7 @@ static int CheckDVDPlayerUpdate(void)
     char path[33];
     int port, slot, fd;
 
-    sprintf(path, "%s/%s", OSDGetDVDPLExecFolder(), "dvdplayer.elf");
+    util_snprintf(path, sizeof(path), "%s/%s", OSDGetDVDPLExecFolder(), "dvdplayer.elf");
     if (DVDPlayerGetUpdateVersion(path, &port, &slot) == 0) {
         return port;
     } else {
@@ -273,7 +273,7 @@ int DVDPlayerBoot(void)
             args[1] = "-m rom0:MCMAN";
             args[2] = "-m rom0:MCSERV";
 
-            sprintf(dvdplayerCMD, "-x mc%d:%s/%s", port, OSDGetDVDPLExecFolder(), "dvdplayer.elf");
+            util_snprintf(dvdplayerCMD, sizeof(dvdplayerCMD), "-x mc%d:%s/%s", port, OSDGetDVDPLExecFolder(), "dvdplayer.elf");
             args[3] = dvdplayerCMD;
 
             LoadExecPS2("moduleload", 4, args);
