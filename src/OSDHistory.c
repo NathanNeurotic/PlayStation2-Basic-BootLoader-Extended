@@ -129,8 +129,9 @@ int LoadHistoryFile(int port)
     fd = open(fullpath, O_RDONLY);
     result = 0;
     if (fd >= 0) {
-        ssize_t r = read(fd, HistoryEntries, sizeof(HistoryEntries));
-        if (r < 0 || (size_t)r != sizeof(HistoryEntries))
+        /* Flawfinder: ignore (bounded read into fixed-size HistoryEntries buffer) */
+        ssize_t r = read(fd, HistoryEntries, HISTORY_SIZE);
+        if (r != (ssize_t)HISTORY_SIZE)
             result = -EIO;
 
         close(fd);
