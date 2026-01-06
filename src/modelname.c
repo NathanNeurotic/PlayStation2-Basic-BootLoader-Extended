@@ -52,7 +52,7 @@ static int ReadModelName(char *name)
 
         return 0; // Original returned -1
     } else {
-        if ((result = sceCdRM(name, MODEL_NAME_MAX_LEN, &stat)) == 1) { // Command issued successfully.
+        if ((result = sceCdRM(name, &stat)) == 1) { // Command issued successfully.
             if (stat & 0x80)
                 return -2;
             if ((stat & 0x40) || name[0] == '\0')

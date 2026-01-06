@@ -66,13 +66,14 @@ int sceCdBootCertify(const u8 *data)
     return result;
 }
 
-int sceCdRM(char *ModelName, size_t modelNameSize, u32 *stat)
+int sceCdRM(char *ModelName, u32 *stat)
 {
     unsigned char rdata[9];
     unsigned char sdata;
     int result1, result2;
+    const size_t modelNameSize = 16; // Two 8-byte chunks
 
-    if (ModelName == NULL || stat == NULL || modelNameSize < 16) {
+    if (ModelName == NULL || stat == NULL) {
         return 0;
     }
 

@@ -241,10 +241,9 @@ static inline int sceCdMV(u8 *out, u32 *stat)
     return 0;
 }
 
-static inline int sceCdRM(char *out, size_t modelNameSize, u32 *stat)
+static inline int sceCdRM(char *out, u32 *stat)
 {
     (void)out;
-    (void)modelNameSize;
     (void)stat;
     return 0;
 }
