@@ -42,22 +42,6 @@ static int HasTooManyHistoryRecords;
 static struct HistoryEntry OldHistoryEntry;
 struct HistoryEntry HistoryEntries[MAX_HISTORY_ENTRIES];
 
-static int read_exact_once(int fd, void *dst, size_t dst_size)
-{
-    ssize_t r;
-
-    if (dst == NULL || dst_size == 0)
-        return -1;
-
-    r = read(fd, dst, dst_size);
-    if (r < 0)
-        return -1;
-    if ((size_t)r != dst_size)
-        return -1;
-
-    return 0;
-}
-
 #ifdef F_WriteHistoryFile
 static int WriteHistoryFile(int port, const char *path, const void *buffer, int len, int append)
 {
@@ -145,7 +129,8 @@ int LoadHistoryFile(int port)
     fd = open(fullpath, O_RDONLY);
     result = 0;
     if (fd >= 0) {
-        if (read_exact_once(fd, HistoryEntries, sizeof(HistoryEntries)) < 0)
+        ssize_t r = read(fd, HistoryEntries, sizeof(HistoryEntries));
+        if (r < 0 || (size_t)r != sizeof(HistoryEntries))
             result = -EIO;
 
         close(fd);
