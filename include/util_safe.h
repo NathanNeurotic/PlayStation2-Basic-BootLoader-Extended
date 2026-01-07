@@ -2,6 +2,7 @@
 #define UTIL_SAFE_H
 
 #include "util_safe_compat.h"
+#include "util_safeio.h"
 
 /**
  * @brief strlcpy-style copy that guarantees NUL termination.

@@ -44,11 +44,11 @@ static int ReadModelName(char *name)
             int fd;
             if ((fd = open("rom0:OSDSYS", O_RDONLY)) >= 0) { // The model name is located at this address.
                 lseek(fd, 0x8C808, SEEK_SET);
-                ssize_t len = read(fd, name, MODEL_NAME_MAX_LEN - 1);
-                if (len > 0 && len < MODEL_NAME_MAX_LEN)
-                    name[len] = '\\0';
-                else
-                    name[0] = '\\0';
+                // Use bounded read helper for Codacy CWE-120/CWE-20 compliance.
+                ssize_t len = safe_read_once_nt(fd, name, MODEL_NAME_MAX_LEN);
+                if (len <= 0) { // Treat EOF/error as empty string to preserve prior behavior.
+                    name[0] = '\0';
+                }
                 close(fd);
             } else
                 util_strlcpy(name, "Unknown", MODEL_NAME_MAX_LEN);

@@ -36,11 +36,36 @@ static inline void debugprintf(const char *fmt, ...)
 }
 #elif COMMON_PRINTF
 #define DPRINTF_INIT()
+static inline void debug_vprintf_safe(const char *fmt, va_list args)
+{
+    if (fmt == NULL) {
+        return;
+    }
+
+#if defined(__GNUC__)
+    if (!__builtin_constant_p(fmt)) {
+        /* CWE-134 guard: only literal formats are interpreted. */
+        printf("%s", fmt);
+        return;
+    }
+#else
+    /* CWE-134 guard: only literal formats are interpreted. */
+    printf("%s", fmt);
+    return;
+#endif
+
+    {
+        char buffer[DEBUGPRINTF_BUFFER_SIZE];
+        vsnprintf(buffer, sizeof(buffer), fmt, args);
+        printf("%s", buffer);
+    }
+}
+
 static inline void debugprintf(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    vprintf(fmt, args);
+    debug_vprintf_safe(fmt, args);
     va_end(args);
 }
 #else

@@ -136,9 +136,10 @@ EE_OBJS_DIR = obj/
 EE_SRC_DIR = src/
 EE_ASM_DIR = asm/
 
+# util_safeio.o centralizes bounded reads (Codacy CWE-120/CWE-20).
 EE_OBJS = main.o \
           globals.o \
-          util.o util_safe.o common.o banner.o elf.o timer.o ps2.o ps1.o dvdplayer.o \
+          util.o util_safe.o util_safeio.o common.o banner.o elf.o timer.o ps2.o ps1.o dvdplayer.o \
           modelname.o libcdvd_add.o OSDHistory.o OSDInit.o OSDConfig.o \
           $(EMBEDDED_STUFF) \
           $(IOP_OBJS)

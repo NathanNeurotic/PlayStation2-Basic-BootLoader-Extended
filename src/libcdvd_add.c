@@ -9,6 +9,10 @@
 #include "util_safe.h"
 
 static unsigned char MECHACON_CMD_S36_supported = 0, MECHACON_CMD_S27_supported = 0, MECHACON_CMD_S24_supported = 0;
+enum {
+    REGION_DATA_LEN = 13,
+    PS1_BOOT_PARAM_LEN = 11
+};
 
 int cdInitAdd(void)
 {
@@ -42,7 +46,7 @@ int custom_sceCdReadRegionParams(u8 *data, size_t data_size, u32 *stat)
         return 0;
 
     memset(data, 0, data_size);
-    if (data_size < 13) {
+    if (data_size < REGION_DATA_LEN) {
         *stat = 0x100;
         return 0;
     }
@@ -51,7 +55,10 @@ int custom_sceCdReadRegionParams(u8 *data, size_t data_size, u32 *stat)
         // if ((result = sceCdApplySCmd(0x36, NULL, 0, RegionData, sizeof(RegionData))) != 0)
         if ((result = sceCdApplySCmd(0x36, NULL, 0, RegionData)) != 0) {
             *stat = RegionData[0];
-            memcpy(data, &RegionData[1], 13);
+            // Validate destination size to prevent CWE-120 when copying fixed region bytes.
+            if (util_memcpy_s(data, data_size, &RegionData[1], REGION_DATA_LEN) != 0) {
+                result = 0;
+            }
         }
     } else {
         *stat = 0x100;
@@ -122,7 +129,7 @@ int custom_sceCdReadPS1BootParam(char *param, size_t param_size, u32 *stat)
         return 0;
 
     memset(param, 0, param_size);
-    if (param_size < 11) {
+    if (param_size < PS1_BOOT_PARAM_LEN) {
         *stat = 0x100;
         return 0;
     }
@@ -131,7 +138,10 @@ int custom_sceCdReadPS1BootParam(char *param, size_t param_size, u32 *stat)
         // if ((result = sceCdApplySCmd(0x27, NULL, 0, out, 13)) != 0)
         if ((result = sceCdApplySCmd(0x27, NULL, 0, out)) != 0) {
             *stat = out[0];
-            memcpy(param, &out[1], 11); // Yes, one byte is not copied.
+            // Validate destination size to prevent CWE-120 while copying fixed boot bytes.
+            if (util_memcpy_s(param, param_size, &out[1], PS1_BOOT_PARAM_LEN) != 0) {
+                result = 0;
+            }
         }
     } else {
         *stat = 0x100;
