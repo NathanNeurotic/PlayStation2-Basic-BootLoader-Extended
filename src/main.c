@@ -1558,6 +1558,7 @@ void poweroffCallback(void *arg)
 }
 
 #endif
+static void AlarmCallback(s32 alarm_id, u16 time, void *common);
 int dischandler()
 {
     int OldDiscType, DiscType, ValidDiscInserted, result, first_run = 1;
