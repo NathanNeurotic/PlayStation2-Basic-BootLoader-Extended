@@ -93,17 +93,8 @@
 #if PLATFORM_HAS_INCLUDE(<hdd-ioctl.h>)
 #include <hdd-ioctl.h>
 #endif
-#if PLATFORM_HAS_INCLUDE(<io_common.h>)
-#include <io_common.h>
-#endif
 #if PLATFORM_HAS_INCLUDE(<libpwroff.h>)
 #include <libpwroff.h>
-#endif
-#endif
-
-#ifdef FILEXIO
-#if PLATFORM_HAS_INCLUDE(<fileXio_rpc.h>)
-#include <fileXio_rpc.h>
 #endif
 #endif
 

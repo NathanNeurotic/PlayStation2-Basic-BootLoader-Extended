@@ -2,6 +2,12 @@
 #include "util_safe_compat.h"
 #include "util_safe.h"
 #include "main.h"
+
+#if defined(FILEXIO) || defined(HDD) || defined(HDD_RUNTIME) || defined(MX4SIO) || defined(MX4SIO_RUNTIME)
+#ifndef __CPPCHECK__
+#include <fileXio_rpc.h>
+#endif
+#endif
 // --------------- glob stuff --------------- //
 #define RUNKELF_ARG_BUF_SIZE 64
 #define RUNKELF_PREFIX "$RUNKELF:"
