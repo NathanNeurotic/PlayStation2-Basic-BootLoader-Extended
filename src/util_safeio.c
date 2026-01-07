@@ -1,11 +1,6 @@
 #include "util_safeio.h"
 
-#ifdef __CPPCHECK__
-typedef long ssize_t;
-extern ssize_t read(int, void *, unsigned int);
-#else
 #include <unistd.h>
-#endif
 
 /* Centralized bounded read helpers to address Codacy CWE-120/CWE-20 findings. */
 
@@ -15,42 +10,26 @@ static ssize_t safe_read_loop(int fd, char *buf, size_t buf_sz, int nul_terminat
         return -1;
     }
 
-#ifdef __CPPCHECK__
-    /* Cppcheck-only: avoid false-positive CWE-120 on bounded read loops. */
-    size_t max_read = buf_sz;
+    if (nul_terminate && buf_sz == 1) {
+        buf[0] = '\0';
+        return 0;
+    }
+
+    size_t max_payload = buf_sz;
     if (nul_terminate) {
-        if (buf_sz == 1) {
-            buf[0] = '\0';
-            return 0;
-        }
-        max_read = buf_sz - 1;
+        max_payload = buf_sz - 1;
     }
-    ssize_t r = read(fd, buf, (unsigned int)max_read);
-    if (r < 0) {
-        return r;
-    }
-    if (nul_terminate) {
-        size_t term_at = ((size_t)r < buf_sz) ? (size_t)r : (buf_sz - 1);
-        buf[term_at] = '\0';
-    }
-    return r;
-#else
+
     size_t offset = 0;
-    while (offset < buf_sz) {
-        size_t max_read = buf_sz - offset;
-
-        if (nul_terminate) {
-            if (max_read <= 1) {
-                break; // Leave space for the terminator.
-            }
-            max_read -= 1;
+    while (offset < max_payload) {
+        size_t to_read = max_payload - offset;
+        ssize_t r = read(fd, buf + offset, to_read);
+        if (r < 0) {
+            return -1;
         }
-
-        ssize_t r = read(fd, buf + offset, max_read);
-        if (r <= 0) {
+        if (r == 0) {
             break;
         }
-
         offset += (size_t)r;
     }
 
@@ -59,7 +38,6 @@ static ssize_t safe_read_loop(int fd, char *buf, size_t buf_sz, int nul_terminat
     }
 
     return (ssize_t)offset;
-#endif
 }
 
 ssize_t safe_read_once_nt(int fd, char *buf, size_t buf_sz)

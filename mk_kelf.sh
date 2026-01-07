@@ -3,6 +3,8 @@ make banner
 
 DATE=$(date "+%d-%m-%Y")
 SHA8=$(git rev-parse --short HEAD)
+: "${DATE:?DATE is unset or empty}"
+: "${SHA8:?SHA8 is unset or empty}"
 TARGET="PS2BBL_KELF-[$DATE]-[$SHA8]"
 
 : "${TARGET:?TARGET not set}"
@@ -53,5 +55,6 @@ if [ "$TARGET" = "/" ]; then
     exit 1
 fi
 
+: "${TARGET:?TARGET is unset or empty}"
 rm -rf -- "${TARGET:?}/"
 echo "done!"

@@ -332,8 +332,8 @@ If you find one — please report it 🙂
 
 ## Static Analysis (Codacy / cppcheck)
 
-- Run `scripts/cppcheck.sh` locally or in Codacy. It invokes `cppcheck` with `--library=std.cfg --check-config --enable=all --std=c99 --inline-suppr --suppress=missingIncludeSystem` and includes:
+- Run `scripts/cppcheck.sh` locally or in Codacy. It invokes `cppcheck` with `--library=std.cfg --check-config --enable=all --std=c99 --inline-suppr` and includes:
   - `$PS2SDK/ee/include`, `$PS2SDK/iop/include`, `$PS2SDK/common/include` (defaulting to `/usr/local/ps2dev/ps2sdk`)
   - Project headers under `include/`
   - Analysis-only PS2SDK shims under `tools/codacy_shims/ps2sdk/` and minimal standard-library shims under `tools/codacy_shims/stdlib/` to avoid “missing include” findings when the real SDK or libc headers are unavailable
-- If Codacy’s Cppcheck runner cannot see the PS2SDK headers, configure it to load `cppcheck-suppressions.txt` (e.g., `--suppressions-list=cppcheck-suppressions.txt`) to silence environment-only `missingInclude` / `missingIncludeSystem` noise without changing real includes.
+- If Codacy’s Cppcheck runner cannot see the PS2SDK headers, point it at the shim headers under `tools/codacy_shims/` to avoid missing-include noise without masking real issues.
