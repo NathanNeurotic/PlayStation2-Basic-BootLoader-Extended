@@ -2,6 +2,8 @@ engines:
   cppcheck:
     enabled: true
     configuration:
+      suppressions:
+        - cppcheck-suppressions.txt
       suppress:
         - missingIncludeSystem
         - missingInclude
