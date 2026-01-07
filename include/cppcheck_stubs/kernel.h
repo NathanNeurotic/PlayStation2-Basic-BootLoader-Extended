@@ -1,11 +1,14 @@
 #pragma once
 // Stub for Codacy/Cppcheck static analysis; not used in PS2SDK builds.
 
-#include "tamtypes.h"
-
 #ifndef UNCACHED_SEG
 #define UNCACHED_SEG(x) (x)
 #endif
+
+typedef unsigned char u8;
+typedef unsigned short u16;
+typedef unsigned int u32;
+typedef signed int s32;
 
 int AddIntcHandler(int interrupt, int (*handler)(int), int next);
 int RemoveIntcHandler(int interrupt, int id);

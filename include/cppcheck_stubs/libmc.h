@@ -1,8 +1,6 @@
 #pragma once
 // Stub for Codacy/Cppcheck static analysis; not used in PS2SDK builds.
 
-#include "tamtypes.h"
-
 #ifndef MC_TYPE_MC
 #define MC_TYPE_MC 0
 #endif

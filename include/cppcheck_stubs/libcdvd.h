@@ -1,8 +1,6 @@
 #pragma once
 // Stub for Codacy/Cppcheck static analysis; not used in PS2SDK builds.
 
-#include "tamtypes.h"
-
 #ifndef SCECdINoD
 #define SCECdINoD 0
 #endif
@@ -10,6 +8,9 @@
 #ifndef SCECdEXIT
 #define SCECdEXIT 1
 #endif
+
+typedef unsigned char u8;
+typedef unsigned int u32;
 
 typedef struct sceCdCLOCK {
     u8 stat;

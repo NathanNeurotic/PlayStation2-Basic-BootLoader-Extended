@@ -1,7 +1,8 @@
 #pragma once
 // Stub for Codacy/Cppcheck static analysis; not used in PS2SDK builds.
 
-#include "tamtypes.h"
+typedef unsigned short u16;
+typedef unsigned int u32;
 
 typedef struct padButtonStatus {
     u16 btns;

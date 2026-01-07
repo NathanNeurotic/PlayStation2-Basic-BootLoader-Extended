@@ -15,3 +15,4 @@ engines:
         - cppcheck-suppressions.txt
 exclude_paths:
   - src/util_safeio.c
+  - include/cppcheck_stubs/**
