@@ -11,6 +11,20 @@
 
 #ifdef __CPPCHECK__
 #include "cppcheck_shims.h"
+#include "cppcheck_stubs/tamtypes.h"
+#include "cppcheck_stubs/kernel.h"
+#include "cppcheck_stubs/sifrpc.h"
+#include "cppcheck_stubs/loadfile.h"
+#include "cppcheck_stubs/debug.h"
+#include "cppcheck_stubs/iopcontrol.h"
+#include "cppcheck_stubs/iopheap.h"
+#include "cppcheck_stubs/sbv_patches.h"
+#include "cppcheck_stubs/ps2sdkapi.h"
+#include "cppcheck_stubs/usbhdfsd-common.h"
+#include "cppcheck_stubs/osd_config.h"
+#include "cppcheck_stubs/libpad.h"
+#include "cppcheck_stubs/libmc.h"
+#include "cppcheck_stubs/libcdvd.h"
 #else
 #include <tamtypes.h>
 #include <kernel.h>
@@ -46,7 +60,7 @@
 
 #ifdef PSX
 #ifdef __CPPCHECK__
-#include "cppcheck_shims.h"
+#include "cppcheck_stubs/iopcontrol_special.h"
 #else
 #include <iopcontrol_special.h>
 #endif
@@ -105,7 +119,9 @@ void loadUDPTTY();
 
 #if defined(HDD) || defined(HDD_RUNTIME)
 #ifdef __CPPCHECK__
-#include "cppcheck_shims.h"
+#include "cppcheck_stubs/hdd-ioctl.h"
+#include "cppcheck_stubs/io_common.h"
+#include "cppcheck_stubs/libpwroff.h"
 #else
 #include <hdd-ioctl.h>
 #include <io_common.h>
@@ -130,7 +146,7 @@ int LookForBDMDevice(void);
 
 #ifdef FILEXIO
 #ifdef __CPPCHECK__
-#include "cppcheck_shims.h"
+#include "cppcheck_stubs/fileXio_rpc.h"
 #else
 #include <fileXio_rpc.h>
 #endif

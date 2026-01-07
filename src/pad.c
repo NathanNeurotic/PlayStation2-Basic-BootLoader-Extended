@@ -1,8 +1,16 @@
 #ifdef __CPPCHECK__
-#include "cppcheck_shims.h"
+#include "cppcheck_stubs/kernel.h"
 #else
 #include <kernel.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/libpad.h"
+#else
 #include <libpad.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/tamtypes.h"
+#else
 #include <tamtypes.h>
 #endif
 #include <stdio.h>

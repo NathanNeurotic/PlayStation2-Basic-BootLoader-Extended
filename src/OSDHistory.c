@@ -2,10 +2,18 @@
 #include <fcntl.h>
 #include <unistd.h>
 #ifdef __CPPCHECK__
-#include "cppcheck_shims.h"
+#include "cppcheck_stubs/kernel.h"
 #else
 #include <kernel.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/libmc.h"
+#else
 #include <libmc.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/libcdvd.h"
+#else
 #include <libcdvd.h>
 #endif
 #include <limits.h>

@@ -3,10 +3,18 @@
 #include <fcntl.h>
 #include <unistd.h>
 #ifdef __CPPCHECK__
-#include "cppcheck_shims.h"
+#include "cppcheck_stubs/tamtypes.h"
 #else
 #include <tamtypes.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/kernel.h"
+#else
 #include <kernel.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/elf-loader.h"
+#else
 #include <elf-loader.h>
 #endif
 #include "debugprintf.h"

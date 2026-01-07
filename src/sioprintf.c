@@ -1,7 +1,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #ifdef __CPPCHECK__
-#include "cppcheck_shims.h"
+#include "cppcheck_stubs/sio.h"
 #else
 #include <sio.h>
 #endif

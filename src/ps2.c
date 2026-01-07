@@ -2,11 +2,23 @@
 #include <string.h>
 #include <stdlib.h>
 #ifdef __CPPCHECK__
-#include "cppcheck_shims.h"
+#include "cppcheck_stubs/kernel.h"
 #else
 #include <kernel.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/sifcmd.h"
+#else
 #include <sifcmd.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/libcdvd.h"
+#else
 #include <libcdvd.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/debug.h"
+#else
 #include <debug.h>
 #endif
 #include "libcdvd_add.h"

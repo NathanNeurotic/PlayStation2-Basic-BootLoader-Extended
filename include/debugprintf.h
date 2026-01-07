@@ -6,7 +6,7 @@
 
 #ifdef SCR_PRINT
 #ifdef __CPPCHECK__
-#include "cppcheck_shims.h"
+#include "cppcheck_stubs/debug.h"
 #else
 #include <debug.h>
 #endif
@@ -17,7 +17,7 @@
 #ifdef EE_SIO_DEBUG
 void sio_printf(const char *fmt, ...);
 #ifdef __CPPCHECK__
-#include "cppcheck_shims.h"
+#include "cppcheck_stubs/SIOCookie.h"
 #else
 #include <SIOCookie.h>
 #endif
