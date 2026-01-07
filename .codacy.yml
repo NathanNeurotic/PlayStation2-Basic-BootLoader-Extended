@@ -2,10 +2,16 @@ engines:
   cppcheck:
     enabled: true
     configuration:
+      arguments:
+        - "--library=std.cfg"
+        - "--check-config"
+        - "--enable=all"
+        - "--std=c99"
+        - "--inline-suppr"
+        - "-Iinclude"
+        - "-Itools/codacy_shims/ps2sdk"
+        - "-Itools/codacy_shims/stdlib"
       suppressions:
         - cppcheck-suppressions.txt
-      suppress:
-        - missingIncludeSystem
-        - missingInclude
 exclude_paths:
   - src/util_safeio.c

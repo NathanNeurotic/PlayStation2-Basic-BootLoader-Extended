@@ -1,9 +1,13 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <kernel.h>
 #include <libmc.h>
 #include <libcdvd.h>
+#endif
 #include <limits.h>
 #include <string.h>
 #include <stdio.h>

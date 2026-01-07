@@ -2,10 +2,14 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <kernel.h>
 #include <sifcmd.h>
 #include <libcdvd.h>
 #include <libmc.h>
+#endif
 #include <errno.h>
 #include <unistd.h>
 

@@ -1,8 +1,12 @@
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <kernel.h>
 #include <libpad.h>
+#include <tamtypes.h>
+#endif
 #include <stdio.h>
 #include <string.h>
-#include <tamtypes.h>
 
 #include "debugprintf.h"
 #include "pad.h"

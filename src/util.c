@@ -4,8 +4,12 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <tamtypes.h>
 #include <loadfile.h>
+#endif
 #include <malloc.h>
 #if defined(HDD) || defined(HDD_RUNTIME)
 #include <assert.h>

@@ -1,10 +1,14 @@
 #include <stdio.h>
 #include <fcntl.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <kernel.h>
-#include <string.h>
 #include <libcdvd.h>
-#include "libcdvd_add.h"
 #include <osd_config.h>
+#endif
+#include <string.h>
+#include "libcdvd_add.h"
 #include "OSDInit.h"
 #include "util_safe.h"
 #include <unistd.h>

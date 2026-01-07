@@ -1,8 +1,12 @@
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <kernel.h>
 #include <sifrpc.h>
+#include <libcdvd.h>
+#endif
 #include <string.h>
 #include <stdio.h>
-#include <libcdvd.h>
 
 #include "debugprintf.h"
 #include "libcdvd_add.h"

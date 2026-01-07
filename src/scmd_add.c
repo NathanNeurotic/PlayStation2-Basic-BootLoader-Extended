@@ -18,9 +18,13 @@
 */
 
 #include <stdio.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <kernel.h>
 #include <sifrpc.h>
 #include <libcdvd.h>
+#endif
 #include "psx/plibcdvd_add.h"
 #include <string.h>
 

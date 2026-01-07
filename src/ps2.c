@@ -1,12 +1,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <kernel.h>
 #include <sifcmd.h>
 #include <libcdvd.h>
+#include <debug.h>
+#endif
 #include "libcdvd_add.h"
 #include <fcntl.h>
-#include <debug.h>
 #include <ctype.h>
 #include <unistd.h>
 //#include "main.h"

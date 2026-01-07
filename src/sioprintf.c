@@ -1,6 +1,10 @@
 #include <stdarg.h>
 #include <stdio.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <sio.h>
+#endif
 void sio_printf(const char *fmt, ...)
 {
     va_list args;

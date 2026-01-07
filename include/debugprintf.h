@@ -5,14 +5,22 @@
 #include <stdio.h>
 
 #ifdef SCR_PRINT
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <debug.h>
+#endif
 #endif
 
 #define DEBUGPRINTF_BUFFER_SIZE 256
 
 #ifdef EE_SIO_DEBUG
 void sio_printf(const char *fmt, ...);
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <SIOCookie.h>
+#endif
 #define DPRINTF_INIT() ee_sio_start(38400, 0, 0, 0, 0, 1);
 static inline void debugprintf(const char *fmt, ...)
 {
