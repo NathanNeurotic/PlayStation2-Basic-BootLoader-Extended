@@ -133,7 +133,7 @@ int LoadHistoryFile(int port)
         // cppcheck-suppress readBufferSize
         // cppcheck-suppress bufferAccessOutOfBounds
         // Use bounded read helper for Codacy CWE-120/CWE-20 compliance.
-        ssize_t r = safe_read_fully(fd, HistoryEntries, HISTORY_SIZE);
+        ssize_t r = safe_read_fully_bin(fd, HistoryEntries, HISTORY_SIZE);
         if (r != (ssize_t)HISTORY_SIZE)
             result = -EIO;
 

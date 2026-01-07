@@ -1,7 +1,0 @@
-engines:
-  cppcheck:
-    enabled: true
-    configuration:
-      suppress:
-        - missingIncludeSystem
-        - missingInclude

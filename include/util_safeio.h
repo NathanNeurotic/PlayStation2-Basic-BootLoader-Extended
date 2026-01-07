@@ -30,7 +30,7 @@ ssize_t safe_read_once_nt(int fd, char *buf, size_t buf_sz);
  * @param buf_sz size of destination buffer
  * @return total bytes read, or negative on error before any bytes were read
  */
-ssize_t safe_read_fully(int fd, void *buf, size_t buf_sz);
+ssize_t safe_read_fully_bin(int fd, void *buf, size_t buf_sz);
 
 /**
  * @brief Read until EOF or buffer full with guaranteed NUL termination.

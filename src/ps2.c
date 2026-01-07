@@ -268,7 +268,7 @@ int PS2DiscBoot(int skip_PS2LOGO)
     if (size == 0) {
         size_read = 0;
     } else {
-        size_read = (int)safe_read_fully(fd, system_cnf, (size_t)size);
+        size_read = (int)safe_read_fully_bin(fd, system_cnf, (size_t)size);
     }
     if (size_read != size) { // Preserve prior behavior: error on short read.
         scr_setfontcolor(0x0000ff);
