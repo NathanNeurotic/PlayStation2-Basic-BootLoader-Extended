@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <fcntl.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/string.h"
+#else
 #include <string.h>
+#endif
 #include <stdlib.h>
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/kernel.h"

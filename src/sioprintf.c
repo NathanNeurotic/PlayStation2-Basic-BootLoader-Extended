@@ -1,4 +1,8 @@
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/stdarg.h"
+#else
 #include <stdarg.h>
+#endif
 #include <stdio.h>
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/sio.h"

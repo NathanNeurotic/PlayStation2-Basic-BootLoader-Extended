@@ -15,7 +15,11 @@
 #else
 #include <osd_config.h>
 #endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/string.h"
+#else
 #include <string.h>
+#endif
 #include "libcdvd_add.h"
 #include "OSDInit.h"
 #include "util_safe.h"

@@ -1,5 +1,9 @@
 #include <stdio.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/string.h"
+#else
 #include <string.h>
+#endif
 #include <stdlib.h>
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/kernel.h"
@@ -23,7 +27,11 @@
 #endif
 #include "libcdvd_add.h"
 #include <fcntl.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/ctype.h"
+#else
 #include <ctype.h>
+#endif
 #include <unistd.h>
 //#include "main.h"
 #include "ps2.h"

@@ -1,7 +1,12 @@
 #ifndef UTIL_SAFE_COMPAT_H
 #define UTIL_SAFE_COMPAT_H
 
-#if defined(__has_include)
+#ifdef __CPPCHECK__
+  #include "cppcheck_stubs/stddef.h"
+  #include "cppcheck_stubs/stdarg.h"
+  #include "cppcheck_stubs/limits.h"
+  #include "cppcheck_stubs/string.h"
+#elif defined(__has_include)
   #if __has_include(<stddef.h>)
     #include <stddef.h>
   #endif

@@ -34,7 +34,6 @@
 #include <libcdvd.h>
 #endif
 #include "psx/plibcdvd_add.h"
-#include <string.h>
 
 enum PSX_CD_SCMD_CMDS
 {

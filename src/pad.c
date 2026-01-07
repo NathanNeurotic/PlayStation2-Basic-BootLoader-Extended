@@ -14,7 +14,6 @@
 #include <tamtypes.h>
 #endif
 #include <stdio.h>
-#include <string.h>
 
 #include "debugprintf.h"
 #include "pad.h"

@@ -1,7 +1,11 @@
 #include <errno.h>
 #include "util_safe_compat.h"
 #include <stdio.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/string.h"
+#else
 #include <string.h>
+#endif
 #include <fcntl.h>
 #include <unistd.h>
 #ifdef __CPPCHECK__

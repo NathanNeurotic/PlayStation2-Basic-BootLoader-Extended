@@ -13,7 +13,11 @@
 #else
 #include <libcdvd.h>
 #endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/string.h"
+#else
 #include <string.h>
+#endif
 #include <stdio.h>
 
 #include "debugprintf.h"

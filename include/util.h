@@ -1,4 +1,8 @@
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/stddef.h"
+#else
 #include <stddef.h>
+#endif
 
 /**
  * @brief checks for file existence

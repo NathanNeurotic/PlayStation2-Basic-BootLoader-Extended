@@ -1,4 +1,8 @@
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/stddef.h"
+#else
 #include <stddef.h>
+#endif
 
 // Initialize add-on functions. Currently only retrieves the MECHACON's version to determine what sceCdAltGetRegionParams() should do.
 int cdInitAdd(void);

@@ -1,7 +1,11 @@
 #ifndef DEBUG_PRINTF
 #define DEBUG_PRINTF
 
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/stdarg.h"
+#else
 #include <stdarg.h>
+#endif
 #include <stdio.h>
 
 #ifdef SCR_PRINT

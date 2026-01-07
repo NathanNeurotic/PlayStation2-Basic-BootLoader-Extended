@@ -4,7 +4,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/string.h"
+#else
 #include <string.h>
+#endif
 #include <unistd.h>
 #include <malloc.h>
 #include <fcntl.h>
