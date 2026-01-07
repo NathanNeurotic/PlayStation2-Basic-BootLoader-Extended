@@ -69,11 +69,11 @@ int PS1DRVInit(void)
     if (fd < 0)
         return -1;
 
-    int bytes = read(fd, ps1drv.ver, sizeof(ps1drv.ver) - 1);
-    if (bytes > 0 && bytes < (int)sizeof(ps1drv.ver))
-        ps1drv.ver[bytes] = '\0';
-    else
+    // Use bounded read helper for Codacy CWE-120/CWE-20 compliance.
+    int bytes = (int)safe_read_once_nt(fd, ps1drv.ver, sizeof(ps1drv.ver));
+    if (bytes <= 0) { // Treat EOF/error as empty string to preserve prior behavior.
         ps1drv.ver[0] = '\0';
+    }
     close(fd);
 
     pChar = ps1drv.ver;
@@ -102,11 +102,11 @@ int PS1DRVInit(void)
             fd = open("rom0:PS1VER", O_RDONLY);
 
         if (fd >= 0) {
-            result = read(fd, ps1drv.ver, sizeof(ps1drv.ver) - 1);
-            if (result > 0 && result < (int)sizeof(ps1drv.ver))
-                ps1drv.ver[result] = '\0';
-            else
+            // Use bounded read helper for Codacy CWE-120/CWE-20 compliance.
+            result = (int)safe_read_once_nt(fd, ps1drv.ver, sizeof(ps1drv.ver));
+            if (result <= 0) { // Treat EOF/error as empty string to preserve prior behavior.
                 ps1drv.ver[0] = '\0';
+            }
             close(fd);
         }
     }
@@ -188,12 +188,12 @@ static int ParseBootCNF(void)
         const char *pChar;
         int size, i, len;
 
-        size = read(fd, system_cnf, sizeof(system_cnf) - 1);
+        // Use bounded read helper for Codacy CWE-120/CWE-20 compliance.
+        size = (int)safe_read_once_nt(fd, system_cnf, sizeof(system_cnf));
         close(fd);
-        if (size > 0 && size < (int)sizeof(system_cnf))
-            system_cnf[size] = '\0';
-        else
+        if (size <= 0) { // Treat EOF/error as empty string to preserve prior behavior.
             system_cnf[0] = '\0';
+        }
         line[0] = '\0';
 
         // Parse SYSTEM.CNF

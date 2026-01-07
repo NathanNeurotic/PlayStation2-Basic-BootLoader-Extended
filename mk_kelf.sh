@@ -46,7 +46,9 @@ cp LICENSE kelf/LICENSE.TXT
 cp README.md kelf/README.md
 mv kelf/ $TARGET
 7z a -t7z PS2BBL_KELF.7z "$TARGET/*"
-if [ "$TARGET" = "/" ] || [ "$TARGET" = "." ]; then
+# Safety guard: prevent CWE-20/22 style unsafe removal on empty or root targets.
+: "${TARGET:?TARGET is not set}"
+if [ -z "$TARGET" ] || [ "$TARGET" = "/" ] || [ "$TARGET" = "." ] || [ "$TARGET" = ".." ]; then
   echo "Refusing to remove unsafe TARGET: '$TARGET'" >&2
   exit 1
 fi

@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "util_safe_compat.h"
+#include "util_safe.h"
 #include "main.h"
 // --------------- glob stuff --------------- //
 #define RUNKELF_ARG_BUF_SIZE 64
@@ -518,11 +519,11 @@ int main(int argc, char *argv[])
 #endif
 
     if ((fd = open("rom0:ROMVER", O_RDONLY)) >= 0) {
-        ssize_t len = read(fd, ROMVER, sizeof(ROMVER) - 1);
-        if (len < 0)
+        // Use bounded read helper for Codacy CWE-120/CWE-20 compliance.
+        ssize_t len = safe_read_once_nt(fd, ROMVER, sizeof(ROMVER));
+        if (len <= 0) { // Treat EOF/error as empty string to preserve prior behavior.
             ROMVER[0] = '\0';
-        else
-            ROMVER[len] = '\0';
+        }
         close(fd);
     }
     j = SifLoadModule("rom0:ADDDRV", 0, NULL); // Load ADDDRV. The OSD has it listed in rom0:OSDCNF/IOPBTCONF, but it is otherwise not loaded automatically.

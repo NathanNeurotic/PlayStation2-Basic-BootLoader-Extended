@@ -308,11 +308,11 @@ int DVDPlayerInit(void)
         return 0;
     }
 
-    ssize_t bytes = read(fd, id, sizeof(id) - 1);
-    if (bytes < 0)
+    // Use bounded read helper for Codacy CWE-120/CWE-20 compliance.
+    ssize_t bytes = safe_read_once_nt(fd, id, sizeof(id));
+    if (bytes <= 0) { // Treat EOF/error as empty string to preserve prior behavior.
         id[0] = '\0';
-    else
-        id[bytes] = '\0';
+    }
     close(fd);
 
     ROMDVDPlayer.major = atoi(id);
@@ -340,11 +340,11 @@ int DVDPlayerInit(void)
             fd = open("rom1:DVDVER", O_RDONLY);
 
         if (fd >= 0) {
-            ssize_t version_len = read(fd, ROMDVDPlayer.ver, sizeof(ROMDVDPlayer.ver) - 1);
-            if (version_len < 0)
+            // Use bounded read helper for Codacy CWE-120/CWE-20 compliance.
+            ssize_t version_len = safe_read_once_nt(fd, ROMDVDPlayer.ver, sizeof(ROMDVDPlayer.ver));
+            if (version_len <= 0) { // Treat EOF/error as empty string to preserve prior behavior.
                 ROMDVDPlayer.ver[0] = '\0';
-            else
-                ROMDVDPlayer.ver[version_len] = '\0';
+            }
             close(fd);
         }
     }

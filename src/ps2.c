@@ -14,6 +14,7 @@
 #include "OSDInit.h"
 #include "OSDHistory.h"
 #include "debugprintf.h"
+#include "util_safe.h"
 
 #define CNF_PATH_LEN_MAX 64
 #define CNF_LEN_MAX      1024
@@ -228,7 +229,7 @@ int PS2DiscBoot(int skip_PS2LOGO)
     char system_cnf[CNF_LEN_MAX], line[CNF_PATH_LEN_MAX]; // These were originally globals/static.
     char *args[1];
     const char *pChar, *cnf_start, *cnf_end;
-    int fd, size, size_remaining, size_read;
+    int fd, size, size_read;
 
     switch (PS2GetBootFile(ps2disc_boot)) {
         case 2:
@@ -263,17 +264,19 @@ int PS2DiscBoot(int skip_PS2LOGO)
         size = CNF_LEN_MAX - 1;
     else if (size < 0)
         size = 0;
-    for (size_remaining = size, size_read = 0; size_remaining > 0; size_remaining -= size_read) {
-        const int offset = size - size_remaining;
-        size_read = read(fd, system_cnf + offset, size_remaining);
-        if (size_read <= 0 || size_read > size_remaining || offset + size_read > size) {
-            scr_setfontcolor(0x0000ff);
-            scr_printf("%s: Can't read SYSTEM.CNF\n", __func__);
-            sleep(3);
-            scr_clear();
-            BootError();
-            return 1;
-        }
+    // Use bounded read helper for Codacy CWE-120/CWE-20 compliance (size already capped).
+    if (size == 0) {
+        size_read = 0;
+    } else {
+        size_read = (int)safe_read_fully(fd, system_cnf, (size_t)size);
+    }
+    if (size_read != size) { // Preserve prior behavior: error on short read.
+        scr_setfontcolor(0x0000ff);
+        scr_printf("%s: Can't read SYSTEM.CNF\n", __func__);
+        sleep(3);
+        scr_clear();
+        BootError();
+        return 1;
     }
     close(fd);
     DPRINTF("%s: readed SYSTEM.CNF. size was %d\n", __func__, size);

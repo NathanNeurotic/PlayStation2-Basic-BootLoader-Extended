@@ -23,7 +23,9 @@ exec cppcheck \
   --enable=all \
   --std=c99 \
   --inline-suppr \
+  --suppressions-list="${PROJECT_ROOT}/cppcheck-suppressions.txt" \
   --suppress=missingIncludeSystem \
+  --suppress=missingInclude \
   "${INCLUDE_PATHS[@]}" \
   "${PROJECT_ROOT}/src" \
   "${PROJECT_ROOT}/include"

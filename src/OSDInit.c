@@ -6,6 +6,7 @@
 #include "libcdvd_add.h"
 #include <osd_config.h>
 #include "OSDInit.h"
+#include "util_safe.h"
 #include <unistd.h>
 
 /*  Parsing of values from the EEPROM and setting them into the EE kernel
@@ -163,10 +164,9 @@ static int GetConsoleRegion(void)
         int fd;
         if ((fd = open("rom0:ROMVER", O_RDONLY)) >= 0) {
             char romver[16] = {0};
-            ssize_t len = read(fd, romver, sizeof(romver) - 1);
-            if (len > 0 && len < (ssize_t)sizeof(romver)) {
-                romver[len] = '\0';
-            } else {
+            // Use bounded read helper for Codacy CWE-120/CWE-20 compliance.
+            ssize_t len = safe_read_once_nt(fd, romver, sizeof(romver));
+            if (len <= 0) { // Treat EOF/error as empty string to preserve prior behavior.
                 romver[0] = '\0';
             }
             close(fd);
@@ -225,10 +225,9 @@ static int GetOSDRegion(void)
         int fd;
         ConsoleOSDRegionInitStatus = 1;
         if ((fd = open("rom0:OSDVER", O_RDONLY)) >= 0) {
-            ssize_t len = read(fd, OSDVer, sizeof(OSDVer) - 1);
-            if (len > 0 && len < (ssize_t)sizeof(OSDVer)) {
-                OSDVer[len] = '\0';
-            } else {
+            // Use bounded read helper for Codacy CWE-120/CWE-20 compliance.
+            ssize_t len = safe_read_once_nt(fd, OSDVer, sizeof(OSDVer));
+            if (len <= 0) { // Treat EOF/error as empty string to preserve prior behavior.
                 OSDVer[0] = '\0';
             }
             close(fd);
@@ -561,11 +560,11 @@ int OSDInitROMVER(void)
 
     memset(ConsoleROMVER, 0, ROMVER_MAX_LEN);
     if ((fd = open("rom0:ROMVER", O_RDONLY)) >= 0) {
-        ssize_t len = read(fd, ConsoleROMVER, ROMVER_MAX_LEN - 1);
-        if (len < 0)
+        // Use bounded read helper for Codacy CWE-120/CWE-20 compliance.
+        ssize_t len = safe_read_once_nt(fd, ConsoleROMVER, ROMVER_MAX_LEN);
+        if (len <= 0) { // Treat EOF/error as empty string to preserve prior behavior.
             ConsoleROMVER[0] = '\0';
-        else
-            ConsoleROMVER[len] = '\0';
+        }
         close(fd);
     }
 
