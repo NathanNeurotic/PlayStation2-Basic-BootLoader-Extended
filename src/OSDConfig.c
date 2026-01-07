@@ -1,6 +1,10 @@
 #include <stdio.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <osd_config.h>
 #include <kernel.h>
+#endif
 
 #include "OSDInit.h"
 #include "OSDConfig.h"

@@ -2,9 +2,13 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <tamtypes.h>
 #include <kernel.h>
 #include <elf-loader.h>
+#endif
 #include "debugprintf.h"
 #define MAX_PATH 1025
 #ifdef DEBUG

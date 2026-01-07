@@ -2,7 +2,6 @@
 #define MAIN_H
 #define NEWLIB_PORT_AWARE
 
-#include <tamtypes.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -10,6 +9,9 @@
 #include <malloc.h>
 #include <fcntl.h>
 
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <tamtypes.h>
 #include <kernel.h>
 #include <sifrpc.h>
@@ -20,12 +22,11 @@
 #include <sbv_patches.h>
 #include <ps2sdkapi.h>
 #include <usbhdfsd-common.h>
-
 #include <osd_config.h>
-
 #include <libpad.h>
 #include <libmc.h>
 #include <libcdvd.h>
+#endif
 
 #include "debugprintf.h"
 #include "pad.h"
@@ -44,7 +45,11 @@
 #include "banner.h"
 
 #ifdef PSX
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <iopcontrol_special.h>
+#endif
 #include "psx/plibcdvd_add.h"
 #endif
 
@@ -99,10 +104,14 @@ void loadUDPTTY();
 #endif
 
 #if defined(HDD) || defined(HDD_RUNTIME)
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <hdd-ioctl.h>
 #include <io_common.h>
-#include <assert.h>
 #include <libpwroff.h>
+#endif
+#include <assert.h>
 extern char PART[128];
 extern int HDD_USABLE;
 #define MPART PART
@@ -120,7 +129,11 @@ int LookForBDMDevice(void);
 #endif
 
 #ifdef FILEXIO
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <fileXio_rpc.h>
+#endif
 int LoadFIO(void); // Load FileXio and it´s dependencies
 #endif
 

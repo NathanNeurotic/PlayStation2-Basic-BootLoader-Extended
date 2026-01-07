@@ -3,10 +3,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <kernel.h>
 #include <sifcmd.h>
 #include <libmc.h>
 #include <libcdvd.h>
+#endif
 #include "libcdvd_add.h"
 #include <unistd.h>
 

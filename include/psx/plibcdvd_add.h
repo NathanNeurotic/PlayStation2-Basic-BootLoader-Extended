@@ -1,4 +1,8 @@
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <tamtypes.h>
+#endif
 /**
  * @brief Custom implementation of sceCdChgSys, changes the PSX DESR disc reader mode
  * @param mode operation mode (2 means PS2 mode, any other value is unknown/untested)

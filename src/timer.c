@@ -34,8 +34,12 @@
 
 */
 
+#ifdef __CPPCHECK__
+#include "cppcheck_shims.h"
+#else
 #include <tamtypes.h>
 #include <kernel.h>
+#endif
 
 void TimerInit(void);
 u64 Timer(void);
