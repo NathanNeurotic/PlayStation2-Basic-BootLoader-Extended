@@ -129,10 +129,6 @@ int LoadHistoryFile(int port)
     fd = open(fullpath, O_RDONLY);
     result = 0;
     if (fd >= 0) {
-        /* Flawfinder: ignore (bounded read into fixed-size HistoryEntries buffer) */
-        // cppcheck-suppress readBufferSize
-        // cppcheck-suppress bufferAccessOutOfBounds
-        // Use bounded read helper for Codacy CWE-120/CWE-20 compliance.
         ssize_t r = safe_read_fully_bin(fd, HistoryEntries, HISTORY_SIZE);
         if (r != (ssize_t)HISTORY_SIZE)
             result = -EIO;
