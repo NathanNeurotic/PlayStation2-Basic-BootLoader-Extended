@@ -11,9 +11,6 @@ static ssize_t safe_read_loop(int fd, char *buf, size_t buf_sz, int nul_terminat
     }
 
     size_t offset = 0;
-    /* cppcheck-suppress bufferAccessOutOfBounds
-       cppcheck-suppress readBufferOverflow
-       Reason: offset < buf_sz proven before pointer arithmetic; max_read bounded */
     while (offset < buf_sz) {
         size_t max_read = buf_sz - offset;
 
@@ -24,6 +21,7 @@ static ssize_t safe_read_loop(int fd, char *buf, size_t buf_sz, int nul_terminat
             max_read -= 1;
         }
 
+        // cppcheck-suppress bufferAccessOutOfBounds
         ssize_t r = read(fd, buf + offset, max_read);
         if (r <= 0) {
             break;
