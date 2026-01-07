@@ -1,6 +1,6 @@
 #include "util_safeio.h"
 
-#include "platform_includes.h"
+#include <unistd.h>
 
 /* Centralized bounded read helpers to address Codacy CWE-120/CWE-20 findings. */
 
@@ -40,9 +40,9 @@ static ssize_t safe_read_loop(int fd, char *buf, size_t buf_sz, int nul_terminat
     return (ssize_t)offset;
 }
 
-ssize_t safe_read_once_nt(int fd, char *buf, size_t buf_sz)
+ssize_t safe_read_once_nt(int fd, void *buf, size_t buf_sz)
 {
-    return safe_read_loop(fd, buf, buf_sz, 1);
+    return safe_read_loop(fd, (char *)buf, buf_sz, 1);
 }
 
 ssize_t safe_read_fully_bin(int fd, void *buf, size_t buf_sz)

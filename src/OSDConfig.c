@@ -1,4 +1,6 @@
-#include "platform_includes.h"
+#include <stdio.h>
+#include <osd_config.h>
+#include <kernel.h>
 
 #include "OSDInit.h"
 #include "OSDConfig.h"

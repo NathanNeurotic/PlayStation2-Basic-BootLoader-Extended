@@ -1,12 +1,18 @@
 #ifndef DEBUG_PRINTF
 #define DEBUG_PRINTF
 
-#include "platform_includes.h"
+#include <stdarg.h>
+#include <stdio.h>
+
+#ifdef SCR_PRINT
+#include <debug.h>
+#endif
 
 #define DEBUGPRINTF_BUFFER_SIZE 256
 
 #ifdef EE_SIO_DEBUG
 void sio_printf(const char *fmt, ...);
+#include <SIOCookie.h>
 #define DPRINTF_INIT() ee_sio_start(38400, 0, 0, 0, 0, 1);
 static inline void debugprintf(const char *fmt, ...)
 {

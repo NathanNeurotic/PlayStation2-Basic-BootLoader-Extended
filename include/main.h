@@ -2,7 +2,30 @@
 #define MAIN_H
 #define NEWLIB_PORT_AWARE
 
-#include "platform_includes.h"
+#include <tamtypes.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <malloc.h>
+#include <fcntl.h>
+
+#include <tamtypes.h>
+#include <kernel.h>
+#include <sifrpc.h>
+#include <loadfile.h>
+#include <debug.h>
+#include <iopcontrol.h>
+#include <iopheap.h>
+#include <sbv_patches.h>
+#include <ps2sdkapi.h>
+#include <usbhdfsd-common.h>
+
+#include <osd_config.h>
+
+#include <libpad.h>
+#include <libmc.h>
+#include <libcdvd.h>
 
 #include "debugprintf.h"
 #include "pad.h"
@@ -21,6 +44,7 @@
 #include "banner.h"
 
 #ifdef PSX
+#include <iopcontrol_special.h>
 #include "psx/plibcdvd_add.h"
 #endif
 
@@ -45,7 +69,6 @@ void TimerEnd(void);
 
 /// check path for processing pseudo-devices like `mc?:/`
 char *CheckPath(char *path);
-static void AlarmCallback(s32 alarm_id, u16 time, void *common);
 int dischandler();
 // there is no need to call this on a PSX DESR since OSDSYS performs it at boot
 void CDVDBootCertify(u8 romver[16]);

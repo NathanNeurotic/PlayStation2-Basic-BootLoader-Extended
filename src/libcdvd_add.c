@@ -1,4 +1,8 @@
-#include "platform_includes.h"
+#include <kernel.h>
+#include <sifrpc.h>
+#include <string.h>
+#include <stdio.h>
+#include <libcdvd.h>
 
 #include "debugprintf.h"
 #include "libcdvd_add.h"

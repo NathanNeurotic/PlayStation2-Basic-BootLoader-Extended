@@ -1,4 +1,4 @@
-#include "platform_includes.h"
+#include <tamtypes.h>
 /**
  * @brief Custom implementation of sceCdChgSys, changes the PSX DESR disc reader mode
  * @param mode operation mode (2 means PS2 mode, any other value is unknown/untested)

@@ -1,4 +1,13 @@
-#include "platform_includes.h"
+#include <stdio.h>
+#include <fcntl.h>
+#include <string.h>
+#include <stdlib.h>
+#include <kernel.h>
+#include <sifcmd.h>
+#include <libcdvd.h>
+#include <libmc.h>
+#include <errno.h>
+#include <unistd.h>
 
 #include "dvdplayer.h"
 #include "util_safe.h"

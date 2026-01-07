@@ -1,4 +1,4 @@
-#include "platform_includes.h"
+#include <stddef.h>
 
 // Initialize add-on functions. Currently only retrieves the MECHACON's version to determine what sceCdAltGetRegionParams() should do.
 int cdInitAdd(void);

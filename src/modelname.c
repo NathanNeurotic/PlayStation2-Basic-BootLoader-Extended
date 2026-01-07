@@ -1,5 +1,12 @@
-#include "platform_includes.h"
+#include <stdio.h>
+#include <fcntl.h>
+#include <string.h>
+#include <stdlib.h>
+#include <kernel.h>
+#include <sifcmd.h>
+#include <libcdvd.h>
 #include "libcdvd_add.h"
+#include <unistd.h>
 
 #include "modelname.h"
 #include "util_safe.h"

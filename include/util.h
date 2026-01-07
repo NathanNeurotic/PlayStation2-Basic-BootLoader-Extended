@@ -1,4 +1,4 @@
-#include "platform_includes.h"
+#include <stddef.h>
 
 /**
  * @brief checks for file existence

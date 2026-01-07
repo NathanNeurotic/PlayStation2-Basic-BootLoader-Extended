@@ -34,18 +34,17 @@
 
 */
 
-#include "platform_includes.h"
+#include <tamtypes.h>
+#include <kernel.h>
+#ifndef __CPPCHECK__
+#include <timer.h>
+#endif
 
 void TimerInit(void);
 u64 Timer(void);
 void TimerEnd(void);
 void delay(int delay);
 //________________ From uLaunchELF ______________________
-// Timer Define
-
-#define T0_COUNT ((volatile unsigned long *)0x10000000)
-#define T0_MODE  ((volatile unsigned long *)0x10000010)
-
 static int TimerInterruptID = -1;
 static u64 TimerInterruptCount = 0;
 

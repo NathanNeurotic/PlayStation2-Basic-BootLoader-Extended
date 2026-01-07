@@ -1,7 +1,13 @@
-#include "platform_includes.h"
+#include <stdio.h>
+#include <fcntl.h>
+#include <kernel.h>
+#include <string.h>
+#include <libcdvd.h>
 #include "libcdvd_add.h"
+#include <osd_config.h>
 #include "OSDInit.h"
 #include "util_safe.h"
+#include <unistd.h>
 
 /*  Parsing of values from the EEPROM and setting them into the EE kernel
     was done in different ways, across different browser versions.

@@ -1,13 +1,23 @@
-#include "platform_includes.h"
-#include "util_safe_compat.h"
-#include "util_safe.h"
-#include "main.h"
+#include <errno.h>
+#include <string.h>
 
 #if defined(FILEXIO) || defined(HDD) || defined(HDD_RUNTIME) || defined(MX4SIO) || defined(MX4SIO_RUNTIME)
 #ifndef __CPPCHECK__
 #include <fileXio_rpc.h>
 #endif
 #endif
+
+#if defined(HDD) || defined(HDD_RUNTIME)
+#ifndef __CPPCHECK__
+#include <hdd-ioctl.h>
+#include <io_common.h>
+#include <libpwroff.h>
+#endif
+#endif
+
+#include "util_safe_compat.h"
+#include "util_safe.h"
+#include "main.h"
 // --------------- glob stuff --------------- //
 #define RUNKELF_ARG_BUF_SIZE 64
 #define RUNKELF_PREFIX "$RUNKELF:"
@@ -235,7 +245,7 @@ static void __attribute__((unused)) EnableConfigPath(CONFIG_SOURCES_ID source)
         config_path_enabled[source] = 1;
 }
 
-static void DisableConfigPath(CONFIG_SOURCES_ID source)
+static void __attribute__((unused)) DisableConfigPath(CONFIG_SOURCES_ID source)
 {
     if (source < SOURCE_COUNT)
         config_path_enabled[source] = 0;
