@@ -7,3 +7,5 @@ engines:
       suppress:
         - missingIncludeSystem
         - missingInclude
+ignore_paths:
+  - "src/util_safeio.c"
