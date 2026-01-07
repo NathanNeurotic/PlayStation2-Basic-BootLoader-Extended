@@ -1,6 +1,6 @@
 #include "util_safeio.h"
 
-#include <unistd.h>
+#include "platform_includes.h"
 
 /* Centralized bounded read helpers to address Codacy CWE-120/CWE-20 findings. */
 

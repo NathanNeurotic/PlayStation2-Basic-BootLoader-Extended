@@ -2,30 +2,7 @@
 #define MAIN_H
 #define NEWLIB_PORT_AWARE
 
-#include <tamtypes.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <malloc.h>
-#include <fcntl.h>
-
-#include <tamtypes.h>
-#include <kernel.h>
-#include <sifrpc.h>
-#include <loadfile.h>
-#include <debug.h>
-#include <iopcontrol.h>
-#include <iopheap.h>
-#include <sbv_patches.h>
-#include <ps2sdkapi.h>
-#include <usbhdfsd-common.h>
-
-#include <osd_config.h>
-
-#include <libpad.h>
-#include <libmc.h>
-#include <libcdvd.h>
+#include "platform_includes.h"
 
 #include "debugprintf.h"
 #include "pad.h"
@@ -44,7 +21,6 @@
 #include "banner.h"
 
 #ifdef PSX
-#include <iopcontrol_special.h>
 #include "psx/plibcdvd_add.h"
 #endif
 
@@ -99,10 +75,6 @@ void loadUDPTTY();
 #endif
 
 #if defined(HDD) || defined(HDD_RUNTIME)
-#include <hdd-ioctl.h>
-#include <io_common.h>
-#include <assert.h>
-#include <libpwroff.h>
 extern char PART[128];
 extern int HDD_USABLE;
 #define MPART PART
@@ -120,7 +92,6 @@ int LookForBDMDevice(void);
 #endif
 
 #ifdef FILEXIO
-#include <fileXio_rpc.h>
 int LoadFIO(void); // Load FileXio and it´s dependencies
 #endif
 

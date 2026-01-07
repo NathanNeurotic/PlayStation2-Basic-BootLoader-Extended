@@ -1,18 +1,9 @@
-#include <errno.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <kernel.h>
-#include <libmc.h>
-#include <libcdvd.h>
-#include <limits.h>
-#include <string.h>
-#include <stdio.h>
+#include "platform_includes.h"
 #include "OSDInit.h"
 #include "util.h"
 #include "util_safe.h"
 #include "OSDHistory.h"
 #include "debugprintf.h"
-#include <stdlib.h>
 
 /*  The OSDs have this weird bug whereby the size of the icon file is hardcoded to 1776 bytes... even though that is way too long!
     Unfortunately, using the right size will cause the icon to be deemed as corrupted data by the HDDOSD. */

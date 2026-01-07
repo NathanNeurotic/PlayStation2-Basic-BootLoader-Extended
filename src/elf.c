@@ -1,10 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <tamtypes.h>
-#include <kernel.h>
-#include <elf-loader.h>
+#include "platform_includes.h"
 #include "debugprintf.h"
 #define MAX_PATH 1025
 #ifdef DEBUG

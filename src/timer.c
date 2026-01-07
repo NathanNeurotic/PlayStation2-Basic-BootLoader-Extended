@@ -34,8 +34,7 @@
 
 */
 
-#include <tamtypes.h>
-#include <kernel.h>
+#include "platform_includes.h"
 
 void TimerInit(void);
 u64 Timer(void);

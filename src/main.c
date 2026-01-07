@@ -1,6 +1,4 @@
-#include <errno.h>
-#include <string.h>
-
+#include "platform_includes.h"
 #include "util_safe_compat.h"
 #include "util_safe.h"
 #include "main.h"

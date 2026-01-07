@@ -1,14 +1,5 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <kernel.h>
-#include <sifcmd.h>
-#include <libcdvd.h>
+#include "platform_includes.h"
 #include "libcdvd_add.h"
-#include <fcntl.h>
-#include <debug.h>
-#include <ctype.h>
-#include <unistd.h>
 //#include "main.h"
 #include "ps2.h"
 #include "OSDInit.h"

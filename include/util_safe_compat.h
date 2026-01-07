@@ -1,26 +1,7 @@
 #ifndef UTIL_SAFE_COMPAT_H
 #define UTIL_SAFE_COMPAT_H
 
-#if defined(__has_include)
-  #if __has_include(<stddef.h>)
-    #include <stddef.h>
-  #endif
-  #if __has_include(<stdarg.h>)
-    #include <stdarg.h>
-  #endif
-  #if __has_include(<stdint.h>)
-    #include <stdint.h>
-  #endif
-  #if __has_include(<limits.h>)
-    #include <limits.h>
-  #endif
-  #if __has_include(<string.h>)
-    #include <string.h>
-  #endif
-  #if __has_include(<stdio.h>)
-    #include <stdio.h>
-  #endif
-#endif
+#include "platform_includes.h"
 
 #ifndef SIZE_MAX
 typedef unsigned long size_t;

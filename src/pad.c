@@ -1,8 +1,4 @@
-#include <kernel.h>
-#include <libpad.h>
-#include <stdio.h>
-#include <string.h>
-#include <tamtypes.h>
+#include "platform_includes.h"
 
 #include "debugprintf.h"
 #include "pad.h"

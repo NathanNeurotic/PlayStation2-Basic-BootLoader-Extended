@@ -3,11 +3,7 @@
 
 #include "util_safe_compat.h"
 
-#if defined(__has_include)
-  #if __has_include(<unistd.h>)
-    #include <unistd.h>
-  #endif
-#endif
+#include "platform_includes.h"
 
 /*
  * Safe read helpers to satisfy Codacy CWE-120/CWE-20 guidance:

@@ -17,12 +17,8 @@
 # NOTE: not all functions work with each set of modules!
 */
 
-#include <stdio.h>
-#include <kernel.h>
-#include <sifrpc.h>
-#include <libcdvd.h>
+#include "platform_includes.h"
 #include "psx/plibcdvd_add.h"
-#include <string.h>
 
 enum PSX_CD_SCMD_CMDS
 {

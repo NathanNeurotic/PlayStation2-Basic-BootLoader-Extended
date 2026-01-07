@@ -1,15 +1,5 @@
-#include <errno.h>
+#include "platform_includes.h"
 #include "util_safe_compat.h"
-#include <stdio.h>
-#include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <tamtypes.h>
-#include <loadfile.h>
-#include <malloc.h>
-#if defined(HDD) || defined(HDD_RUNTIME)
-#include <assert.h>
-#endif
 
 #include "util.h"
 #include "util_safe.h"

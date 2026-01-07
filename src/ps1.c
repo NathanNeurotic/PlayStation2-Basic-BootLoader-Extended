@@ -1,14 +1,5 @@
-#include <stdio.h>
-#include <fcntl.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <kernel.h>
-#include <sifcmd.h>
-#include <libmc.h>
-#include <libcdvd.h>
+#include "platform_includes.h"
 #include "libcdvd_add.h"
-#include <unistd.h>
 
 #include "ps1.h"
 #include "util_safe.h"
