@@ -19,14 +19,21 @@
 
 #include <stdio.h>
 #ifdef __CPPCHECK__
-#include "cppcheck_shims.h"
+#include "cppcheck_stubs/kernel.h"
 #else
 #include <kernel.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/sifrpc.h"
+#else
 #include <sifrpc.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/libcdvd.h"
+#else
 #include <libcdvd.h>
 #endif
 #include "psx/plibcdvd_add.h"
-#include <string.h>
 
 enum PSX_CD_SCMD_CMDS
 {

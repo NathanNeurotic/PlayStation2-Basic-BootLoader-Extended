@@ -1,13 +1,25 @@
 #include <stdio.h>
 #include <fcntl.h>
 #ifdef __CPPCHECK__
-#include "cppcheck_shims.h"
+#include "cppcheck_stubs/kernel.h"
 #else
 #include <kernel.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/libcdvd.h"
+#else
 #include <libcdvd.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/osd_config.h"
+#else
 #include <osd_config.h>
 #endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/string.h"
+#else
 #include <string.h>
+#endif
 #include "libcdvd_add.h"
 #include "OSDInit.h"
 #include "util_safe.h"

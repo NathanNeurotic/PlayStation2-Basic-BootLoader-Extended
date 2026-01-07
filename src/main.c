@@ -1,5 +1,9 @@
 #include <errno.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/string.h"
+#else
 #include <string.h>
+#endif
 
 #include "util_safe_compat.h"
 #include "util_safe.h"

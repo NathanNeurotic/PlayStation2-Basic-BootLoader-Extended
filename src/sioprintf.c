@@ -1,7 +1,11 @@
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/stdarg.h"
+#else
 #include <stdarg.h>
+#endif
 #include <stdio.h>
 #ifdef __CPPCHECK__
-#include "cppcheck_shims.h"
+#include "cppcheck_stubs/sio.h"
 #else
 #include <sio.h>
 #endif

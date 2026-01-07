@@ -1,14 +1,34 @@
 #include <stdio.h>
 #include <fcntl.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
 #ifdef __CPPCHECK__
-#include "cppcheck_shims.h"
+#include "cppcheck_stubs/string.h"
+#else
+#include <string.h>
+#endif
+#include <stdlib.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/ctype.h"
+#else
+#include <ctype.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/kernel.h"
 #else
 #include <kernel.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/sifcmd.h"
+#else
 #include <sifcmd.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/libmc.h"
+#else
 #include <libmc.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/libcdvd.h"
+#else
 #include <libcdvd.h>
 #endif
 #include "libcdvd_add.h"

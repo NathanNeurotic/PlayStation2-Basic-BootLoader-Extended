@@ -1,13 +1,21 @@
 #include <errno.h>
 #include "util_safe_compat.h"
 #include <stdio.h>
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/string.h"
+#else
 #include <string.h>
+#endif
 #include <fcntl.h>
 #include <unistd.h>
 #ifdef __CPPCHECK__
-#include "cppcheck_shims.h"
+#include "cppcheck_stubs/tamtypes.h"
 #else
 #include <tamtypes.h>
+#endif
+#ifdef __CPPCHECK__
+#include "cppcheck_stubs/loadfile.h"
+#else
 #include <loadfile.h>
 #endif
 #include <malloc.h>
