@@ -1,8 +1,85 @@
 #ifndef CPPCHECK_SHIMS_H
 #define CPPCHECK_SHIMS_H
 
-#include <stddef.h>
-#include <stdint.h>
+#ifndef NULL
+#define NULL ((void *)0)
+#endif
+
+#ifndef __SIZE_TYPE__
+typedef unsigned int size_t;
+#else
+typedef __SIZE_TYPE__ size_t;
+#endif
+
+#ifndef __PTRDIFF_TYPE__
+typedef int ptrdiff_t;
+#else
+typedef __PTRDIFF_TYPE__ ptrdiff_t;
+#endif
+
+#ifndef __UINT8_TYPE__
+typedef unsigned char uint8_t;
+#else
+typedef __UINT8_TYPE__ uint8_t;
+#endif
+
+#ifndef __INT8_TYPE__
+typedef signed char int8_t;
+#else
+typedef __INT8_TYPE__ int8_t;
+#endif
+
+#ifndef __UINT16_TYPE__
+typedef unsigned short uint16_t;
+#else
+typedef __UINT16_TYPE__ uint16_t;
+#endif
+
+#ifndef __INT16_TYPE__
+typedef signed short int16_t;
+#else
+typedef __INT16_TYPE__ int16_t;
+#endif
+
+#ifndef __UINT32_TYPE__
+typedef unsigned int uint32_t;
+#else
+typedef __UINT32_TYPE__ uint32_t;
+#endif
+
+#ifndef __INT32_TYPE__
+typedef signed int int32_t;
+#else
+typedef __INT32_TYPE__ int32_t;
+#endif
+
+#ifndef __UINT64_TYPE__
+typedef unsigned long long uint64_t;
+#else
+typedef __UINT64_TYPE__ uint64_t;
+#endif
+
+#ifndef __INT64_TYPE__
+typedef signed long long int64_t;
+#else
+typedef __INT64_TYPE__ int64_t;
+#endif
+
+#if defined(UINTPTR_MAX) || defined(__UINTPTR_TYPE__)
+#ifndef __UINTPTR_TYPE__
+typedef unsigned long uintptr_t;
+#else
+typedef __UINTPTR_TYPE__ uintptr_t;
+#endif
+#endif
+
+#if defined(INTPTR_MAX) || defined(__INTPTR_TYPE__)
+#ifndef __INTPTR_TYPE__
+typedef long intptr_t;
+#else
+typedef __INTPTR_TYPE__ intptr_t;
+#endif
+#endif
 
 #include "ps2sdk_shim.h"
 
