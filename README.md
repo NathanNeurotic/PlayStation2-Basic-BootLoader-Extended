@@ -15,6 +15,7 @@ https://app.codacy.com/gh/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/
 [![CI](https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/actions/workflows/cl.yml/badge.svg?branch=main)](
 https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/actions/workflows/cl.yml
 )
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/14305e388344440098481de06cf7817e)](https://app.codacy.com/gh/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended?utm_source=github.com&utm_medium=referral&utm_content=NathanNeurotic/PlayStation2-Basic-BootLoader-Extended&utm_campaign=Badge_Grade)
 [![GitHub all releases](https://img.shields.io/github/downloads/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/total?logo=GitHub&logoColor=white)](https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/releases/)
 
 
