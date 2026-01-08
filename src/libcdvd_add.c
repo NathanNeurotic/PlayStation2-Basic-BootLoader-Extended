@@ -1,23 +1,28 @@
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/kernel.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <kernel.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/sifrpc.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <sifrpc.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/libcdvd.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <libcdvd.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/string.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <string.h>
 #endif
+// cppcheck-suppress missingIncludeSystem
 #include <stdio.h>
 
 #include "debugprintf.h"

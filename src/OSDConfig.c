@@ -1,12 +1,15 @@
+// cppcheck-suppress missingIncludeSystem
 #include <stdio.h>
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/osd_config.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <osd_config.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/kernel.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <kernel.h>
 #endif
 #include "OSDInit.h"

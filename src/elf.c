@@ -1,19 +1,25 @@
+// cppcheck-suppress missingIncludeSystem
 #include <stdio.h>
+// cppcheck-suppress missingIncludeSystem
 #include <fcntl.h>
+// cppcheck-suppress missingIncludeSystem
 #include <unistd.h>
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/tamtypes.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <tamtypes.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/kernel.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <kernel.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/elf-loader.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <elf-loader.h>
 #endif
 #include "debugprintf.h"

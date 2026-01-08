@@ -8,21 +8,27 @@
   #include "cppcheck_stubs/string.h"
 #elif defined(__has_include)
   #if __has_include(<stddef.h>)
+    // cppcheck-suppress missingIncludeSystem
     #include <stddef.h>
   #endif
   #if __has_include(<stdarg.h>)
+    // cppcheck-suppress missingIncludeSystem
     #include <stdarg.h>
   #endif
   #if __has_include(<stdint.h>)
+    // cppcheck-suppress missingIncludeSystem
     #include <stdint.h>
   #endif
   #if __has_include(<limits.h>)
+    // cppcheck-suppress missingIncludeSystem
     #include <limits.h>
   #endif
   #if __has_include(<string.h>)
+    // cppcheck-suppress missingIncludeSystem
     #include <string.h>
   #endif
   #if __has_include(<stdio.h>)
+    // cppcheck-suppress missingIncludeSystem
     #include <stdio.h>
   #endif
 #endif

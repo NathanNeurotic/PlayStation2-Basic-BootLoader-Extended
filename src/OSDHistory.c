@@ -1,37 +1,47 @@
+// cppcheck-suppress missingIncludeSystem
 #include <errno.h>
+// cppcheck-suppress missingIncludeSystem
 #include <fcntl.h>
+// cppcheck-suppress missingIncludeSystem
 #include <unistd.h>
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/kernel.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <kernel.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/libmc.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <libmc.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/libcdvd.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <libcdvd.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/limits.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <limits.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/string.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <string.h>
 #endif
+// cppcheck-suppress missingIncludeSystem
 #include <stdio.h>
 #include "OSDInit.h"
 #include "util.h"
 #include "util_safe.h"
 #include "OSDHistory.h"
 #include "debugprintf.h"
+// cppcheck-suppress missingIncludeSystem
 #include <stdlib.h>
 
 /*  The OSDs have this weird bug whereby the size of the icon file is hardcoded to 1776 bytes... even though that is way too long!

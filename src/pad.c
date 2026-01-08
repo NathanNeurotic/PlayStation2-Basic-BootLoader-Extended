@@ -1,18 +1,22 @@
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/kernel.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <kernel.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/libpad.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <libpad.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/tamtypes.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <tamtypes.h>
 #endif
+// cppcheck-suppress missingIncludeSystem
 #include <stdio.h>
 
 #include "debugprintf.h"

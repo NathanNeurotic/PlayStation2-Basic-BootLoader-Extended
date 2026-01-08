@@ -17,20 +17,24 @@
 # NOTE: not all functions work with each set of modules!
 */
 
+// cppcheck-suppress missingIncludeSystem
 #include <stdio.h>
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/kernel.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <kernel.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/sifrpc.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <sifrpc.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/libcdvd.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <libcdvd.h>
 #endif
 #include "psx/plibcdvd_add.h"

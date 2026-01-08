@@ -2,15 +2,21 @@
 #define MAIN_H
 #define NEWLIB_PORT_AWARE
 
+// cppcheck-suppress missingIncludeSystem
 #include <stdlib.h>
+// cppcheck-suppress missingIncludeSystem
 #include <stdio.h>
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/string.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <string.h>
 #endif
+// cppcheck-suppress missingIncludeSystem
 #include <unistd.h>
+// cppcheck-suppress missingIncludeSystem
 #include <malloc.h>
+// cppcheck-suppress missingIncludeSystem
 #include <fcntl.h>
 
 #ifdef __CPPCHECK__
@@ -30,19 +36,33 @@
 #include "cppcheck_stubs/libmc.h"
 #include "cppcheck_stubs/libcdvd.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <tamtypes.h>
+// cppcheck-suppress missingIncludeSystem
 #include <kernel.h>
+// cppcheck-suppress missingIncludeSystem
 #include <sifrpc.h>
+// cppcheck-suppress missingIncludeSystem
 #include <loadfile.h>
+// cppcheck-suppress missingIncludeSystem
 #include <debug.h>
+// cppcheck-suppress missingIncludeSystem
 #include <iopcontrol.h>
+// cppcheck-suppress missingIncludeSystem
 #include <iopheap.h>
+// cppcheck-suppress missingIncludeSystem
 #include <sbv_patches.h>
+// cppcheck-suppress missingIncludeSystem
 #include <ps2sdkapi.h>
+// cppcheck-suppress missingIncludeSystem
 #include <usbhdfsd-common.h>
+// cppcheck-suppress missingIncludeSystem
 #include <osd_config.h>
+// cppcheck-suppress missingIncludeSystem
 #include <libpad.h>
+// cppcheck-suppress missingIncludeSystem
 #include <libmc.h>
+// cppcheck-suppress missingIncludeSystem
 #include <libcdvd.h>
 #endif
 
@@ -66,6 +86,7 @@
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/iopcontrol_special.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <iopcontrol_special.h>
 #endif
 #include "psx/plibcdvd_add.h"
@@ -127,10 +148,14 @@ void loadUDPTTY();
 #include "cppcheck_stubs/io_common.h"
 #include "cppcheck_stubs/libpwroff.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <hdd-ioctl.h>
+// cppcheck-suppress missingIncludeSystem
 #include <io_common.h>
+// cppcheck-suppress missingIncludeSystem
 #include <libpwroff.h>
 #endif
+// cppcheck-suppress missingIncludeSystem
 #include <assert.h>
 extern char PART[128];
 extern int HDD_USABLE;
@@ -152,6 +177,7 @@ int LookForBDMDevice(void);
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/fileXio_rpc.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <fileXio_rpc.h>
 #endif
 int LoadFIO(void); // Load FileXio and it´s dependencies

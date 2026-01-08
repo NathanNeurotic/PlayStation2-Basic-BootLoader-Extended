@@ -5,6 +5,7 @@
 
 #if defined(__has_include)
   #if __has_include(<unistd.h>)
+    // cppcheck-suppress missingIncludeSystem
     #include <unistd.h>
   #endif
 #endif

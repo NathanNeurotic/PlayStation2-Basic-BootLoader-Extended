@@ -1,32 +1,42 @@
+// cppcheck-suppress missingIncludeSystem
 #include <stdio.h>
+// cppcheck-suppress missingIncludeSystem
 #include <fcntl.h>
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/string.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <string.h>
 #endif
+// cppcheck-suppress missingIncludeSystem
 #include <stdlib.h>
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/kernel.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <kernel.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/sifcmd.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <sifcmd.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/libcdvd.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <libcdvd.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/libmc.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <libmc.h>
 #endif
+// cppcheck-suppress missingIncludeSystem
 #include <errno.h>
+// cppcheck-suppress missingIncludeSystem
 #include <unistd.h>
 
 #include "dvdplayer.h"
