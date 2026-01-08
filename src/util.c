@@ -1,25 +1,34 @@
+// cppcheck-suppress missingIncludeSystem
 #include <errno.h>
 #include "util_safe_compat.h"
+// cppcheck-suppress missingIncludeSystem
 #include <stdio.h>
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/string.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <string.h>
 #endif
+// cppcheck-suppress missingIncludeSystem
 #include <fcntl.h>
+// cppcheck-suppress missingIncludeSystem
 #include <unistd.h>
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/tamtypes.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <tamtypes.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/loadfile.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <loadfile.h>
 #endif
+// cppcheck-suppress missingIncludeSystem
 #include <malloc.h>
 #if defined(HDD) || defined(HDD_RUNTIME)
+// cppcheck-suppress missingIncludeSystem
 #include <assert.h>
 #endif
 

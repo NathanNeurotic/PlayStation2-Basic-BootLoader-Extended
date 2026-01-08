@@ -1,28 +1,35 @@
+// cppcheck-suppress missingIncludeSystem
 #include <stdio.h>
+// cppcheck-suppress missingIncludeSystem
 #include <fcntl.h>
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/kernel.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <kernel.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/libcdvd.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <libcdvd.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/osd_config.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <osd_config.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/string.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <string.h>
 #endif
 #include "libcdvd_add.h"
 #include "OSDInit.h"
 #include "util_safe.h"
+// cppcheck-suppress missingIncludeSystem
 #include <unistd.h>
 
 /*  Parsing of values from the EEPROM and setting them into the EE kernel

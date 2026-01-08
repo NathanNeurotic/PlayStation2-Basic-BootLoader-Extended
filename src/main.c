@@ -1,7 +1,9 @@
+// cppcheck-suppress missingIncludeSystem
 #include <errno.h>
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/string.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <string.h>
 #endif
 

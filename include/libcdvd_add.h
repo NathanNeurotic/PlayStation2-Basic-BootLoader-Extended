@@ -1,6 +1,7 @@
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/stddef.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <stddef.h>
 #endif
 

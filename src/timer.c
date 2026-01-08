@@ -37,11 +37,13 @@
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/tamtypes.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <tamtypes.h>
 #endif
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/kernel.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <kernel.h>
 #endif
 

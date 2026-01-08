@@ -1,5 +1,6 @@
 #include "util_safeio.h"
 
+// cppcheck-suppress missingIncludeSystem
 #include <unistd.h>
 
 /* Centralized bounded read helpers to address Codacy CWE-120/CWE-20 findings. */

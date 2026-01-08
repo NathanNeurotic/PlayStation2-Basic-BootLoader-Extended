@@ -4,14 +4,17 @@
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/stdarg.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <stdarg.h>
 #endif
+// cppcheck-suppress missingIncludeSystem
 #include <stdio.h>
 
 #ifdef SCR_PRINT
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/debug.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <debug.h>
 #endif
 #endif
@@ -23,6 +26,7 @@ void sio_printf(const char *fmt, ...);
 #ifdef __CPPCHECK__
 #include "cppcheck_stubs/SIOCookie.h"
 #else
+// cppcheck-suppress missingIncludeSystem
 #include <SIOCookie.h>
 #endif
 #define DPRINTF_INIT() ee_sio_start(38400, 0, 0, 0, 0, 1);
