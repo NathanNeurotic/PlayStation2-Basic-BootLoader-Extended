@@ -12,10 +12,10 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/8a5773aa30cf4aca97550ec8053908d6)](
 https://app.codacy.com/gh/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/dashboard
 )
-[![CI](https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/actions/workflows/CI.yml/badge.svg?branch=main)](
-https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/actions/workflows/CI.yml
+[![CI](https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/actions/workflows/cl.yml/badge.svg?branch=main)](
+https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/actions/workflows/cl.yml
 )
-![GitHub all releases](https://img.shields.io/github/downloads/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/total?logo=GitHub&logoColor=white)
+[![GitHub all releases](https://img.shields.io/github/downloads/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/total?logo=GitHub&logoColor=white)](https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/releases/)
 
 
 ---
