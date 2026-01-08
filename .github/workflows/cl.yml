@@ -291,6 +291,7 @@ jobs:
             Test Sheet: https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/blob/main/BETA_TEST_CHECKLIST.md  
 
             ### PS2BBLE.zip contains all versions
+            Note: MMCE + MX4SIO combined variants are intentionally omitted (unsupported in embedded IRX mode).
           prerelease: true
           files: release-artifacts/PS2BBLE.zip
         env:

@@ -464,6 +464,7 @@ make
 ```
 
 cl commonly builds multiple variants by enumerating feature flags (embedded vs runtime drivers, device support, chainload modes, etc.).
+Compatibility note: "normal" builds embed IRX for selected devices, and MMCE + MX4SIO embedded modes are mutually exclusive. Automated prerelease artifacts omit MMCE+MX4SIO combinations accordingly.
 
 ---
 
