@@ -4,8 +4,15 @@ on:
   push:
     branches:
       - '*'
+    tags:
+      - '*'
   pull_request:
   workflow_dispatch:
+    inputs:
+      release_name:
+        description: Release name string for prerelease body
+        required: true
+        default: manual
 
 jobs:
   matrix:
@@ -26,24 +33,67 @@ jobs:
 
       - name: Generate variant matrix
         id: variants
-        env:
-          CHUNK_SIZE: 25
         run: |
           set -euo pipefail
-          make list-variants > variants.json
           cat <<'PY' | sed 's/^  //' | python3 > matrix.json
-            import json, os
+            import json
 
-            CHUNK_SIZE = int(os.environ.get("CHUNK_SIZE", "25"))
-            with open("variants.json", "r", encoding="utf-8") as fh:
-                variants = json.load(fh).get("include", [])
+            labels = [
+                "hdd-normal",
+                "mmce-normal",
+                "mx4sio-normal",
+                "usb-normal",
+                "xfrom-normal",
+                "hdd-normal+mmce-normal",
+                "hdd-normal+mx4sio-normal",
+                "hdd-normal+usb-normal",
+                "hdd-normal+xfrom-normal",
+                "mmce-normal+mx4sio-normal",
+                "mmce-normal+usb-normal",
+                "mmce-normal+xfrom-normal",
+                "mx4sio-normal+usb-normal",
+                "mx4sio-normal+xfrom-normal",
+                "usb-normal+xfrom-normal",
+                "hdd-normal+mmce-normal+mx4sio-normal",
+                "hdd-normal+mmce-normal+usb-normal",
+                "hdd-normal+mmce-normal+xfrom-normal",
+                "hdd-normal+mx4sio-normal+usb-normal",
+                "hdd-normal+mx4sio-normal+xfrom-normal",
+                "hdd-normal+usb-normal+xfrom-normal",
+                "mmce-normal+mx4sio-normal+usb-normal",
+                "mmce-normal+mx4sio-normal+xfrom-normal",
+                "mmce-normal+usb-normal+xfrom-normal",
+                "mx4sio-normal+usb-normal+xfrom-normal",
+                "hdd-normal+mmce-normal+mx4sio-normal+usb-normal",
+                "hdd-normal+mmce-normal+mx4sio-normal+xfrom-normal",
+                "hdd-normal+mmce-normal+usb-normal+xfrom-normal",
+                "hdd-normal+mx4sio-normal+usb-normal+xfrom-normal",
+                "mmce-normal+mx4sio-normal+usb-normal+xfrom-normal",
+                "hdd-normal+mmce-normal+mx4sio-normal+usb-normal+xfrom-normal",
+            ]
+            device_map = {
+                "hdd": "HDD",
+                "mmce": "MMCE",
+                "mx4sio": "MX4SIO",
+                "usb": "USB",
+                "xfrom": "XFROM",
+            }
+            flag_order = ["HDD", "MMCE", "MX4SIO", "USB", "XFROM"]
 
-            batches = []
-            for idx in range(0, len(variants), CHUNK_SIZE):
-                batch = variants[idx : idx + CHUNK_SIZE]
-                batches.append({"index": idx // CHUNK_SIZE, "batch": json.dumps(batch)})
+            variants = []
+            for label in labels:
+                flags = {}
+                for part in label.split("+"):
+                    device, mode = part.split("-", 1)
+                    if mode != "normal":
+                        raise SystemExit(f"Unsupported mode in label: {label}")
+                    if device not in device_map:
+                        raise SystemExit(f"Unknown device in label: {label}")
+                    flags[device_map[device]] = 1
+                flag_string = " ".join(f"{key}=1" for key in flag_order if key in flags)
+                variants.append({"name": label, "flags": flag_string})
 
-            print(json.dumps({"include": batches}, sort_keys=False))
+            print(json.dumps({"include": variants}, sort_keys=False))
             with open("count.txt", "w", encoding="utf-8") as fh:
                 fh.write(str(len(variants)))
           PY
@@ -73,51 +123,120 @@ jobs:
         id: meta
         run: echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
-      - name: Build batch ${{ matrix.index }}
+      - name: Build ${{ matrix.name }}
         env:
-          BATCH_JSON: ${{ matrix.batch }}
+          VARIANT_NAME: ${{ matrix.name }}
+          VARIANT_FLAGS: ${{ matrix.flags }}
           SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, os, shlex, subprocess, sys
+          import os
+          import shlex
+          import subprocess
 
-          batch = json.loads(os.environ["BATCH_JSON"])
+          name = os.environ["VARIANT_NAME"]
+          flags = os.environ.get("VARIANT_FLAGS", "").strip()
           short_sha = os.environ["SHORT_SHA"]
 
-          for entry in batch:
-              name = entry["name"]
-              flags = entry.get("flags", "").strip()
-              outdir = os.path.join("build", "variants", name)
-              base = ["make", f"VARIANT={name}", f"OUTDIR={outdir}", f"COMMIT_HASH={short_sha}"]
-              if flags:
-                  base += shlex.split(flags)
-              subprocess.run(base + ["clean"], check=True)
-              subprocess.run(base + ["all"], check=True)
-              cfg = os.path.join(outdir, "BUILD_CONFIG.txt")
-              if not os.path.isfile(cfg):
-                  raise SystemExit(f"Missing BUILD_CONFIG.txt for {name}")
+          outdir = os.path.join("build", "variants", name)
+          base = ["make", f"VARIANT={name}", f"OUTDIR={outdir}", f"COMMIT_HASH={short_sha}"]
+          if flags:
+              base += shlex.split(flags)
+          subprocess.run(base + ["clean"], check=True)
+          subprocess.run(base + ["all"], check=True)
+          cfg = os.path.join(outdir, "BUILD_CONFIG.txt")
+          if not os.path.isfile(cfg):
+              raise SystemExit(f"Missing BUILD_CONFIG.txt for {name}")
           PY
 
-      - name: Package batch ${{ matrix.index }}
+      - name: Stage built ELF for ${{ matrix.name }}
+        run: |
+          set -euo pipefail
+          mkdir -p staged-elves
+          variant_dir="build/variants/${{ matrix.name }}"
+          elf_path="$variant_dir/PS2BBL.ELF"
+          if [ ! -f "$elf_path" ]; then
+            echo "Missing ELF for ${{ matrix.name }} at $elf_path" >&2
+            exit 1
+          fi
+          mkdir -p "staged-elves/${{ matrix.name }}"
+          cp "$elf_path" "staged-elves/${{ matrix.name }}/PS2BBLE.ELF"
+
+      - name: Upload staged ELF for ${{ matrix.name }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-elf-${{ matrix.name }}
+          path: staged-elves/${{ matrix.name }}/PS2BBLE.ELF
+          if-no-files-found: error
+
+      - name: Package ${{ matrix.name }}
         run: |
           set -euo pipefail
           mkdir -p artifacts
-          for variant_dir in build/variants/*; do
-            [ -d "$variant_dir" ] || continue
-            name=$(basename "$variant_dir")
-            tar -czf "artifacts/${name}.tar.gz" -C "$variant_dir" .
-          done
+          tar -czf "artifacts/${{ matrix.name }}.tar.gz" -C "build/variants/${{ matrix.name }}" .
 
-      - name: Upload batch ${{ matrix.index }}
+      - name: Upload ${{ matrix.name }}
         uses: actions/upload-artifact@v4
         with:
-          name: ps2bbl-batch-${{ matrix.index }}-${{ steps.meta.outputs.short_sha }}
+          name: ps2bbl-${{ matrix.name }}-${{ steps.meta.outputs.short_sha }}
           path: artifacts/*.tar.gz
           if-no-files-found: error
 
-  prerelease:
+  package-elves:
     needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download staged ELFs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: built-elf-*
+          path: dist
+          merge-multiple: false
+
+      - name: Normalize dist layout
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          for artifact_dir in dist/built-elf-*; do
+            [ -d "$artifact_dir" ] || continue
+            name="${artifact_dir##*/built-elf-}"
+            elf_path="$artifact_dir/PS2BBLE.ELF"
+            if [ ! -f "$elf_path" ]; then
+              echo "Missing PS2BBLE.ELF for $name in $artifact_dir" >&2
+              exit 1
+            fi
+            mkdir -p "dist/$name"
+            cp "$elf_path" "dist/$name/PS2BBLE.ELF"
+          done
+          for leftover in dist/built-elf-*; do
+            [ -d "$leftover" ] || continue
+            rm -rf "$leftover"
+          done
+
+      - name: Show dist tree
+        run: |
+          set -euo pipefail
+          find dist -maxdepth 3 -print
+
+      - name: Zip staged ELFs
+        run: |
+          set -euo pipefail
+          if [ ! -d dist ]; then
+            echo "dist directory not found" >&2
+            exit 1
+          fi
+          zip -r PS2BBLE.zip dist
+
+      - name: Upload PS2BBLE zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: ps2bble-zip-${{ github.sha }}
+          path: PS2BBLE.zip
+          if-no-files-found: error
+
+  prerelease:
+    needs: package-elves
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
@@ -131,83 +250,45 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Discover available artifacts
-        id: discover_artifacts
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Resolve release name
+        id: release_name
         run: |
           set -euo pipefail
-          mkdir -p release-artifacts
-          artifacts=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" -q '.artifacts[].name' | sed -n '/^ps2bbl-/p')
-          count=$(printf "%s\n" "$artifacts" | sed '/^$/d' | wc -l | tr -d ' ')
-          echo "count=$count" >> "$GITHUB_OUTPUT"
-          if [ "$count" = "0" ]; then
-            echo "No matching artifacts were found for prerelease packaging." >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "${{ github.event.inputs.release_name }}" ]; then
+            echo "value=${{ github.event.inputs.release_name }}" >> "$GITHUB_OUTPUT"
           else
-            {
-              echo "Matched artifacts (${count}):"
-              printf "%s\n" "$artifacts"
-            } >> "$GITHUB_STEP_SUMMARY"
+            tag_name="${GITHUB_REF_NAME}"
+            echo "value=${tag_name}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Download artifacts
-        if: steps.discover_artifacts.outputs.count != '0'
+      - name: Download PS2BBLE zip
         uses: actions/download-artifact@v4
         with:
+          name: ps2bble-zip-${{ github.sha }}
           path: release-artifacts
-          pattern: ps2bbl-*
-          merge-multiple: false
 
-      - name: Ensure release directories
-        run: mkdir -p release-artifacts release-packages
-
-      - name: Detect downloaded artifacts
-        id: artifacts
+      - name: Verify PS2BBLE.zip
         run: |
-          echo "Downloaded artifact layout:"
-          find release-artifacts -maxdepth 2 -print || true
-          count=$(find release-artifacts -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
-          echo "count=$count" >> "$GITHUB_OUTPUT"
-          if [ "$count" = "0" ]; then
-            echo "No artifacts were downloaded; skipping packaging." >> "$GITHUB_STEP_SUMMARY"
+          set -euo pipefail
+          if [ ! -f release-artifacts/PS2BBLE.zip ]; then
+            echo "PS2BBLE.zip not found in release-artifacts" >&2
+            exit 1
           fi
-
-      - name: Archive artifacts
-        if: steps.artifacts.outputs.count != '0'
-        run: |
-          for dir in release-artifacts/*; do
-            [ -d "$dir" ] || continue
-            base=$(basename "$dir")
-            tar -czf "release-packages/${base}.tar.gz" -C "$dir" .
-          done
-
-      - name: Check packaged artifacts
-        id: packages
-        run: |
-          count=$(find release-packages -type f -name '*.tar.gz' | wc -l | tr -d ' ')
-          echo "count=$count" >> "$GITHUB_OUTPUT"
-          if [ "$count" = "0" ]; then
-            echo "No packaged artifacts found; skipping release publication." >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-      - name: Generate release notes
-        run: |
-          python3 scripts/generate_cl_release_notes.py \
-            --artifacts-dir release-artifacts \
-            --packages-dir release-packages \
-            --output RELEASE_BODY.md \
-            --release-sha "${GITHUB_SHA}"
-          echo "### Batch manifest overview" >> "$GITHUB_STEP_SUMMARY"
-          cat RELEASE_BODY.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish prerelease
-        if: steps.packages.outputs.count != '0'
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
         with:
           tag_name: cl-${{ github.sha }}
           name: CL prerelease ${{ github.sha }}
-          body_path: RELEASE_BODY.md
+          body: |
+            Automated CL prerelease for `${{ steps.release_name.outputs.value }}`
+            <img width="1536" height="394" alt="logo" src="https://github.com/user-attachments/assets/e536e2cd-4287-413e-9695-8e2aec3d25fb" />
+
+            Check the [readme.md](https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended#documentation)  
+            Test Sheet: https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/blob/main/BETA_TEST_CHECKLIST.md  
+
+            ### PS2BBLE.zip contains all versions
           prerelease: true
-          files: release-packages/*
+          files: release-artifacts/PS2BBLE.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
