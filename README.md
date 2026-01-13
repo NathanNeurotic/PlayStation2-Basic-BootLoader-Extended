@@ -9,11 +9,10 @@
   A flexible BootLoader for PlayStation 2(TM) and PSX-DESR
 </p>
 <p align="center">
-  <a href="https://ps2homebrewstore.com/">
-    <img src="https://img.shields.io/badge/platform-PlayStation%202%20%7C%20PSX--DESR-2bbecb" alt="Platform"></a>
+  <a href="https://ps2homebrewstore.com/"><img src="https://img.shields.io/badge/platform-PlayStation%202%20%7C%20PSX--DESR-003766?labelColor=0070CC" alt="Platform"></a>
   <a href="https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended?tab=License-1-ov-file#">
     <img src="https://img.shields.io/github/license/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended?color=7e57c2" alt="License"></a> <a href="https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/blob/main/README.md">
-    <img src="https://img.shields.io/github/languages/top/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended?color=009688" alt="Language"></a> <a href="https://discord.gg/KRtqWeNdfC"><img src="https://img.shields.io/discord/1256458065834676244?style=flat&logo=discord&logoColor=7289DA&label=Discord&labelColor=6A0DAD&color=5865F2" alt="Discord"></a>
+    <img src="https://img.shields.io/github/languages/top/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended?color=009688" alt="Language"></a> <a href="https://discord.gg/KRtqWeNdfC"><img src="https://img.shields.io/discord/1256458065834676244?style=flat&logo=discord&logoColor=7289DA&label=Discord&labelColor=6A0DAD&color=5865F2" alt="Discord"></a><br>
   <a href="https://app.codacy.com/gh/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/dashboard">
     <img src="https://app.codacy.com/project/badge/Grade/8a5773aa30cf4aca97550ec8053908d6" alt="Codacy"></a>
   <a href="https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended/actions/workflows/cl.yml">
