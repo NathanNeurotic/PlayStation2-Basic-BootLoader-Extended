@@ -1,6 +1,9 @@
+## THIS REPO IS OUTDATED - CHECK OUT @SAILDOT4K's UPDATED IMPROVED VERSION AT https://github.com/saildot4k/PlayStation2-Basic-BootLoader-Extended
+
+
 <br />
 <p align="center">
-  <a href="https://github.com/NathanNeurotic/PlayStation2-Basic-BootLoader-Extended">
+  <a href="https://github.com/saildot4k/PlayStation2-Basic-BootLoader-Extended">
     <img width="1536" height="394" alt="PS2BBLE Logo" src="https://github.com/user-attachments/assets/6c977cdf-6d8f-47ad-961b-9b1d5f4577f7" />
   </a>
 </p>
@@ -23,7 +26,7 @@
 
 
 ---
-
+## THIS REPO IS OUTDATED - CHECK OUT @SAILDOT4K's UPDATED IMPROVED VERSION AT https://github.com/saildot4k/PlayStation2-Basic-BootLoader-Extended
 ## Documentation
 
 Full original documentation is available on GitHub Pages:  
@@ -38,6 +41,7 @@ This Repo's ReadMe.md has been modified from its original version to reflect thi
 As a result, it is recommended to familiarize yourself with this PS2BBLE documentation before continuing, even if you are familiar with PS2BBL.  
 
 ---
+## THIS REPO IS OUTDATED - CHECK OUT @SAILDOT4K's UPDATED IMPROVED VERSION AT https://github.com/saildot4k/PlayStation2-Basic-BootLoader-Extended
 
 # PS2BBLE (PlayStation 2 Basic BootLoader - Extended)
 
